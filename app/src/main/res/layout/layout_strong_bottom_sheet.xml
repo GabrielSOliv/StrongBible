@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#1E1E2C"
+    android:paddingLeft="24dp"
+    android:paddingTop="24dp"
+    android:paddingRight="24dp"
+    android:paddingBottom="32dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="16dp">
+
+        <TextView
+            android:id="@+id/bottom_sheet_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#1E1E2C"
+            android:background="@drawable/bg_badge"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingLeft="12dp"
+            android:paddingTop="6dp"
+            android:paddingRight="12dp"
+            android:paddingBottom="6dp" />
+
+        <TextView
+            android:id="@+id/bottom_sheet_lang"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#9A9AB0"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:paddingLeft="12dp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Palavra Original:"
+        android:textColor="#9A9AB0"
+        android:textSize="11sp" />
+
+    <TextView
+        android:id="@+id/bottom_sheet_unicode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:textSize="36sp"
+        android:fontFamily="serif"
+        android:textStyle="bold"
+        android:paddingBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pronúncia / Transliteração:"
+        android:textColor="#9A9AB0"
+        android:textSize="11sp" />
+
+    <TextView
+        android:id="@+id/bottom_sheet_translit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#33E1ED"
+        android:textSize="16sp"
+        android:textStyle="italic"
+        android:paddingBottom="18dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Definição Detalhada / Significado:"
+        android:textColor="#9A9AB0"
+        android:textSize="11sp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="160dp">
+
+        <TextView
+            android:id="@+id/bottom_sheet_meaning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:lineSpacingMultiplier="1.2" />
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/bottom_sheet_close_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fechar"
+        android:textColor="#1E1E2C"
+        android:background="@drawable/bg_badge"
+        android:gravity="center"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
+        android:layout_marginTop="24dp"
+        android:clickable="true"
+        android:focusable="true"/>
+</LinearLayout>

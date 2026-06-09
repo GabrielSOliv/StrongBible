@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Bíblia Strong</string>
+    <string name="testament_at">Antigo Testamento</string>
+    <string name="testament_nt">Novo Testamento</string>
+    <string name="search_hint">Buscar na Bíblia (mín. 3 letras)…</string>
+    <string name="search_no_results">Nenhum resultado encontrado.</string>
+    <string name="strong_code">Código Strong</string>
+    <string name="strong_meaning">Significado</string>
+    <string name="strong_empty">Toque em um código Strong (ex: &lt;H7225&gt;) para ver seu significado.</string>
+    <string name="back">Voltar</string>
+    <string name="font_size">Tamanho da Fonte</string>
+</resources>

@@ -1,0 +1,6 @@
+{
+  "name": "Bíblia Strong",
+  "description": "Bíblia Sagrada offline com Concordância Strong integrada para hebraico e grego.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
