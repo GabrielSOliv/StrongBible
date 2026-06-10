@@ -202,7 +202,7 @@ public class MainActivity extends ComponentActivity {
     }
 
     private View buildBookItemRow(Book book) {
-        View row = getLayoutInflater().inflate(R.layout.layout_book_item, null);
+        View row = getLayoutInflater().inflate(R.layout.layout_book_item, contentFrame, false);
         TextView badge = row.findViewById(R.id.book_badge);
         TextView name = row.findViewById(R.id.book_name);
 
