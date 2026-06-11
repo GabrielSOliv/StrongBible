@@ -1,4 +1,4 @@
-package com.devgabriel.bstrong;
+package com.devgabriel.bstrong.core.database;
 
 import android.content.Context;
 import android.database.Cursor;

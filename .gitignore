@@ -17,3 +17,4 @@ local.properties
 debug.keystore
 build/
 **/build/
+.vscode

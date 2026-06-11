@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
+import com.devgabriel.bstrong.core.database.BibleDatabaseHelper;
 
 public class BibleRepository {
 
