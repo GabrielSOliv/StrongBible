@@ -25,7 +25,8 @@ import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
+import com.devgabriel.bstrong.features.chapters.data.datasource.ChapterLocalDataSource;
+import com.devgabriel.bstrong.core.database.BibleDatabaseHelper;
 import androidx.activity.ComponentActivity;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -59,6 +60,7 @@ public class MainActivity extends ComponentActivity {
 
     private List<Book> allBooks = new ArrayList<>();
     private int selectedTab = 1;
+    private ChapterLocalDataSource chapterLocalDataSource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,8 @@ public class MainActivity extends ComponentActivity {
 
         setContentView(R.layout.activity_main);
         contentFrame = findViewById(R.id.content_frame);
+
+        chapterLocalDataSource = new ChapterLocalDataSource(new BibleDatabaseHelper(this));
 
         repository = new BibleRepository(this);
         allBooks = repository.getAllBooks();
@@ -224,7 +228,7 @@ public class MainActivity extends ComponentActivity {
         backBtn.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         title.setText(selectedBook.getName());
 
-        List<Integer> chapters = repository.getChapters(selectedBook.getId());
+        List<Integer> chapters = chapterLocalDataSource.getChapters(selectedBook.getId());
 
         for (final int chapter : chapters) {
             View btnView = getLayoutInflater().inflate(R.layout.layout_chapter_item, gridLayout, false);
@@ -253,7 +257,7 @@ public class MainActivity extends ComponentActivity {
         backBtn.setOnClickListener(v -> navigateTo(SCREEN_HOME, null));
         titleHeader.setText(selectedBook.getShortName() + " " + selectedChapter);
 
-        List<Integer> chapters = repository.getChapters(selectedBook.getId());
+        List<Integer> chapters = chapterLocalDataSource.getChapters(selectedBook.getId());
         boolean hasNext = selectedChapter < chapters.size();
 
         prevBtn.setTextColor(selectedChapter > 1 ? COLOR_PRIMARY_CYAN : COLOR_TEXT_MUTED);

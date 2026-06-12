@@ -45,37 +45,6 @@ public class BibleRepository {
         return list;
     }
 
-    public List<Integer> getChapters(int bookId) {
-        List<Integer> list = new ArrayList<>();
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = null;
-        try {
-            cursor = db.rawQuery(
-                "SELECT DISTINCT VER_CAPITULO FROM VERSICULOS WHERE VER_LIV_ID = ? ORDER BY VER_CAPITULO",
-                new String[]{String.valueOf(bookId)}
-            );
-            if (cursor != null && cursor.moveToFirst()) {
-                do {
-                    list.add(cursor.getInt(0));
-                } while (cursor.moveToNext());
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error loading chapters for book " + bookId + ": " + e.getMessage());
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-
-        if (list.isEmpty()) {
-            int total = getBookChaptersCountFallback(bookId);
-            for (int i = 1; i <= total; i++) {
-                list.add(i);
-            }
-        }
-        return list;
-    }
-
     public List<Verse> getVerses(int bookId, int chapter) {
         List<Verse> list = new ArrayList<>();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
