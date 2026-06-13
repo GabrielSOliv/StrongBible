@@ -36,8 +36,13 @@ import com.devgabriel.bstrong.features.chapters.domain.repository.ChapterReposit
 import com.devgabriel.bstrong.features.chapters.repository.ChapterRepositoryImpl;
 import com.devgabriel.bstrong.features.chapters.presentation.viewmodel.ChapterViewModel;
 import com.devgabriel.bstrong.features.chapters.presentation.view.ChapterSelectionView;
-
+import com.devgabriel.bstrong.features.books.data.datasource.BookLocalDataSource;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.devgabriel.bstrong.features.books.domain.model.Book;
+import com.devgabriel.bstrong.features.books.presentation.view.BookSelectionView;
+import com.devgabriel.bstrong.features.books.presentation.viewmodel.BookViewModel;
+import com.devgabriel.bstrong.features.books.data.repository.BookRepositoryImpl;
+import com.devgabriel.bstrong.features.books.domain.repository.BookRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +73,8 @@ public class MainActivity extends ComponentActivity {
     private int selectedTab = 1;
     private ChapterLocalDataSource chapterLocalDataSource;
     private ChapterViewModel chapterViewModel;
+    private BookLocalDataSource bookLocalDataSource;
+    private BookViewModel bookViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,8 +89,17 @@ public class MainActivity extends ComponentActivity {
         contentFrame = findViewById(R.id.content_frame);
 
         chapterLocalDataSource = new ChapterLocalDataSource(new BibleDatabaseHelper(this));
+        bookLocalDataSource = new BookLocalDataSource(new BibleDatabaseHelper(this));
+        BookRepository bookRepository = new BookRepositoryImpl(bookLocalDataSource);
+        bookViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
+            @NonNull
+            @Override
+            public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+                return (T) new BookViewModel(bookRepository);
+            }
+        }).get(BookViewModel.class);
         ChapterRepository chapterRepository = new ChapterRepositoryImpl(chapterLocalDataSource);
-        chapterViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
+        chapterViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {    
             @NonNull
             @Override
             public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
@@ -92,7 +108,7 @@ public class MainActivity extends ComponentActivity {
         }).get(ChapterViewModel.class);
 
         repository = new BibleRepository(this);
-        allBooks = repository.getAllBooks();
+        allBooks = bookLocalDataSource.getAllBooks();
 
         navigateTo(SCREEN_HOME, null);
 
@@ -170,67 +186,26 @@ public class MainActivity extends ComponentActivity {
     }
 
     private View buildHomeScreen() {
-        View view = getLayoutInflater().inflate(R.layout.screen_home, contentFrame, false);
-
-        ImageView searchIconHome = view.findViewById(R.id.search_icon_home);
-        FrameLayout searchBarBtn = view.findViewById(R.id.search_bar_btn);
-        TextView tabAt = view.findViewById(R.id.tab_at);
-        TextView tabNt = view.findViewById(R.id.tab_nt);
-        LinearLayout booksContainer = view.findViewById(R.id.books_container);
-
-        searchIconHome.setOnClickListener(v -> navigateTo(SCREEN_SEARCH, null));
-        searchBarBtn.setOnClickListener(v -> navigateTo(SCREEN_SEARCH, null));
-
-        Runnable updateTabsUI = () -> {
-            if (selectedTab == 1) {
-                tabAt.setBackgroundResource(R.drawable.bg_card_border);
-                tabAt.setTextColor(COLOR_PRIMARY_CYAN);
-                tabNt.setBackground(null);
-                tabNt.setTextColor(COLOR_TEXT_MUTED);
-            } else {
-                tabNt.setBackgroundResource(R.drawable.bg_card_border);
-                tabNt.setTextColor(COLOR_PRIMARY_CYAN);
-                tabAt.setBackground(null);
-                tabAt.setTextColor(COLOR_TEXT_MUTED);
-            }
-        };
-
-        updateTabsUI.run();
-
-        View.OnClickListener tabListener = v -> {
-            selectedTab = (v == tabAt) ? 1 : 2;
-            updateTabsUI.run();
-            booksContainer.removeAllViews();
-            
-            for (Book book : allBooks) {
-                if (book.getTestamentId() == selectedTab) {
-                    booksContainer.addView(buildBookItemRow(book));
-                }
-            }
-        };
-        tabAt.setOnClickListener(tabListener);
-        tabNt.setOnClickListener(tabListener);
-
-        for (Book book : allBooks) {
-            if (book.getTestamentId() == selectedTab) {
-                booksContainer.addView(buildBookItemRow(book));
-            }
+    BookSelectionView selectionView = new BookSelectionView(this, contentFrame, new BookSelectionView.BookSelectionListener() {
+        @Override
+        public void onBookSelected(Book book) {
+            navigateTo(SCREEN_CHAPTER_SELECT, book);
         }
 
-        return view;
-    }
+        @Override
+        public void onTabChanged(int testamentId) {
+            bookViewModel.setTab(testamentId);
+        }
 
-    private View buildBookItemRow(Book book) {
-        View row = getLayoutInflater().inflate(R.layout.layout_book_item, contentFrame, false);
-        TextView badge = row.findViewById(R.id.book_badge);
-        TextView name = row.findViewById(R.id.book_name);
-
-        badge.setText(book.getShortName());
-        name.setText(book.getName());
-
-        row.setOnClickListener(v -> navigateTo(SCREEN_CHAPTER_SELECT, book));
-
-        return row;
+        @Override
+        public void onSearchRequested() {
+            navigateTo(SCREEN_SEARCH, null);
+        }
+    });
+    bookViewModel.getFilteredBooks().observe(this, books -> {
+        selectionView.updateBookList(books);
+    });
+    return selectionView.getRoot();
     }
 
     private View buildChapterSelectScreen() {

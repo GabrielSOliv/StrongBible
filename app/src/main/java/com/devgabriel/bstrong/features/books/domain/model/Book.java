@@ -1,4 +1,4 @@
-package com.devgabriel.bstrong;
+package com.devgabriel.bstrong.features.books.domain.model;
 
 public class Book {
     private final int id;
