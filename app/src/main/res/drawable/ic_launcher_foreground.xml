@@ -3,6 +3,6 @@
     <item
         android:width="66dp"
         android:height="66dp"
-        android:drawable="@drawable/bible_strong_launcher_1780855164615"
+        android:drawable="@drawable/bible_strong_launcher"
         android:gravity="center" />
 </layer-list>
