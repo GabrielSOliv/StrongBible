@@ -30,6 +30,12 @@ import com.devgabriel.bstrong.core.database.BibleDatabaseHelper;
 import androidx.activity.ComponentActivity;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
+import com.devgabriel.bstrong.features.chapters.domain.repository.ChapterRepository;
+import com.devgabriel.bstrong.features.chapters.repository.ChapterRepositoryImpl;
+import com.devgabriel.bstrong.features.chapters.presentation.viewmodel.ChapterViewModel;
+import com.devgabriel.bstrong.features.chapters.presentation.view.ChapterSelectionView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
@@ -61,6 +67,7 @@ public class MainActivity extends ComponentActivity {
     private List<Book> allBooks = new ArrayList<>();
     private int selectedTab = 1;
     private ChapterLocalDataSource chapterLocalDataSource;
+    private ChapterViewModel chapterViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +82,14 @@ public class MainActivity extends ComponentActivity {
         contentFrame = findViewById(R.id.content_frame);
 
         chapterLocalDataSource = new ChapterLocalDataSource(new BibleDatabaseHelper(this));
+        ChapterRepository chapterRepository = new ChapterRepositoryImpl(chapterLocalDataSource);
+        chapterViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
+            @NonNull
+            @Override
+            public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+                return (T) new ChapterViewModel(chapterRepository);
+            }
+        }).get(ChapterViewModel.class);
 
         repository = new BibleRepository(this);
         allBooks = repository.getAllBooks();
@@ -219,29 +234,28 @@ public class MainActivity extends ComponentActivity {
     }
 
     private View buildChapterSelectScreen() {
-        View view = getLayoutInflater().inflate(R.layout.screen_chapter_select, contentFrame, false);
+    ChapterSelectionView selectionView = new ChapterSelectionView(this);
+    View view = selectionView.createView();
+    selectionView.getBackBtn().setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
+    selectionView.getTitle().setText(selectedBook.getName());
+    GridLayout gridLayout = selectionView.getChaptersGrid();
+    chapterViewModel.getChapters().observe(this, chapters -> {
+        if (chapters != null) {
+            gridLayout.removeAllViews();
+            for (final int chapter : chapters) {
+                View btnView = getLayoutInflater().inflate(R.layout.layout_chapter_item, gridLayout, false);
+                TextView chBtn = btnView.findViewById(R.id.chapter_btn);
+                chBtn.setText(String.valueOf(chapter));
 
-        TextView backBtn = view.findViewById(R.id.back_btn_chapters);
-        TextView title = view.findViewById(R.id.book_title_chapters);
-        GridLayout gridLayout = view.findViewById(R.id.chapters_grid);
+                chBtn.setOnClickListener(v -> navigateTo(SCREEN_READING, chapter));
 
-        backBtn.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
-        title.setText(selectedBook.getName());
-
-        List<Integer> chapters = chapterLocalDataSource.getChapters(selectedBook.getId());
-
-        for (final int chapter : chapters) {
-            View btnView = getLayoutInflater().inflate(R.layout.layout_chapter_item, gridLayout, false);
-            TextView chBtn = btnView.findViewById(R.id.chapter_btn);
-            chBtn.setText(String.valueOf(chapter));
-
-            chBtn.setOnClickListener(v -> navigateTo(SCREEN_READING, chapter));
-
-            gridLayout.addView(btnView);
+                gridLayout.addView(btnView);
+            }
         }
-
-        return view;
-    }
+    });
+    chapterViewModel.loadChapters(selectedBook.getId());
+    return view;
+}
 
     private View buildReadingScreen() {
         View view = getLayoutInflater().inflate(R.layout.screen_reading, contentFrame, false);

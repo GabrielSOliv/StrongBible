@@ -71,7 +71,7 @@ public class BibleDatabaseHelper extends SQLiteOpenHelper {
         );
     }
 
-    public Cursor getChapter(int livro, int capitulo) {
+    public Cursor getChapter(int book, int chapter){
 
         SQLiteDatabase db = getReadableDatabase();
 
@@ -81,8 +81,8 @@ public class BibleDatabaseHelper extends SQLiteOpenHelper {
                         "AND VER_CAPITULO = ? " +
                         "ORDER BY VER_VERSICULO",
                 new String[]{
-                        String.valueOf(livro),
-                        String.valueOf(capitulo)
+                        String.valueOf(book),
+                        String.valueOf(chapter)
                 }
         );
     }
