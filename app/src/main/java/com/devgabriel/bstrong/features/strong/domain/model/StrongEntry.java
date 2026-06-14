@@ -1,4 +1,4 @@
-package com.devgabriel.bstrong;
+package com.devgabriel.bstrong.features.strong.domain.model;
 
 public class StrongEntry {
     private final String code;

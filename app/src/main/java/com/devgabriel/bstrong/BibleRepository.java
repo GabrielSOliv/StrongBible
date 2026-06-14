@@ -17,65 +17,6 @@ public class BibleRepository {
         this.dbHelper = new BibleDatabaseHelper(context);
     }
 
-    // public List<Verse> getVerses(int bookId, int chapter) {
-    //     List<Verse> list = new ArrayList<>();
-    //     SQLiteDatabase db = dbHelper.getReadableDatabase();
-    //     Cursor cursor = null;
-    //     try {
-    //         cursor = db.rawQuery(
-    //             "SELECT VER_VERSICULO, VER_TITULO, VER_TEXTO FROM VERSICULOS WHERE VER_LIV_ID = ? AND VER_CAPITULO = ? ORDER BY VER_VERSICULO",
-    //             new String[]{String.valueOf(bookId), String.valueOf(chapter)}
-    //         );
-    //         if (cursor != null && cursor.moveToFirst()) {
-    //             do {
-    //                 int number = cursor.getInt(0);
-    //                 String title = cursor.getString(1);
-    //                 String rawText = cursor.getString(2);
-    //                 list.add(new Verse(number, title, rawText));
-    //             } while (cursor.moveToNext());
-    //         }
-    //     } catch (Exception e) {
-    //         Log.e(TAG, "Error loading verses: " + e.getMessage());
-    //     } finally {
-    //         if (cursor != null) {
-    //             cursor.close();
-    //         }
-    //     }
-    //     return list;
-    // }
-
-    public StrongEntry getStrong(String code) {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = null;
-        try {
-            cursor = db.rawQuery(
-                "SELECT CODIGO, IDIOMA, PALAVRA_ORIGINAL, TRADUCAO, SIGNIFICADO FROM STRONG WHERE CODIGO = ?",
-                new String[]{code}
-            );
-            if (cursor != null && cursor.moveToFirst()) {
-                String codeResult = cursor.getString(0);
-                String language = cursor.getString(1);
-                String original = cursor.getString(2);
-                String translit = cursor.getString(3);
-                String meaning = cursor.getString(4);
-                return new StrongEntry(codeResult, language, original, translit, meaning);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error Loading Strong: " + e.getMessage());
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-
-        boolean isHebrew = code.startsWith("H");
-        String lang = isHebrew ? "HEBRAICO" : "GREGO";
-        String uni = isHebrew ? "שָׁלוֹם" : "ἀγάπη";
-        String trs = isHebrew ? "shalom" : "agape";
-        String mean = "Dicionário Strong [" + code + "]\n\nSignificado geral: Conceito de bênção, aliança eterna e revelação profunda. Termo hebraico/grego indicando fidelidade santificada.";
-        return new StrongEntry(code, lang, uni, trs, mean);
-    }
-
     public List<SearchResult> search(String query) {
         List<SearchResult> list = new ArrayList<>();
         if (query == null || query.trim().length() < 3) return list;

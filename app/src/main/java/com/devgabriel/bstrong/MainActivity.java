@@ -50,6 +50,11 @@ import com.devgabriel.bstrong.features.verses.domain.repository.VerseRepository;
 import com.devgabriel.bstrong.features.verses.data.repository.VerseRepositoryImpl;
 import com.devgabriel.bstrong.features.verses.presentation.viewmodel.VerseViewModel;
 import com.devgabriel.bstrong.features.verses.presentation.view.VerseReaderView;
+import com.devgabriel.bstrong.features.strong.domain.repository.StrongRepository;
+import com.devgabriel.bstrong.features.strong.data.repository.StrongRepositoryImpl;
+import com.devgabriel.bstrong.features.strong.presentation.viewmodel.StrongViewModel;
+import com.devgabriel.bstrong.features.strong.presentation.view.StrongBottomSheetView;
+import com.devgabriel.bstrong.features.strong.data.datasource.StrongLocalDataSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +89,9 @@ public class MainActivity extends ComponentActivity {
     private BookViewModel bookViewModel;
     private VerseLocalDataSource verseLocalDataSource;
     private VerseViewModel verseViewModel;
+    private StrongLocalDataSource strongLocalDataSource;
+    private StrongBottomSheetView strongBottomSheetView;
+    private StrongViewModel strongViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +108,7 @@ public class MainActivity extends ComponentActivity {
         chapterLocalDataSource = new ChapterLocalDataSource(new BibleDatabaseHelper(this));
         bookLocalDataSource = new BookLocalDataSource(new BibleDatabaseHelper(this));
         verseLocalDataSource = new VerseLocalDataSource(new BibleDatabaseHelper(this));
+        strongLocalDataSource = new StrongLocalDataSource(new BibleDatabaseHelper(this));
         BookRepository bookRepository = new BookRepositoryImpl(bookLocalDataSource);
         bookViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
             @NonNull
@@ -124,6 +133,17 @@ public class MainActivity extends ComponentActivity {
                 return (T) new VerseViewModel(verseRepository);
             }
         }).get(VerseViewModel.class);
+
+        StrongRepository strongRepository = new StrongRepositoryImpl(strongLocalDataSource);
+        strongViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
+            @NonNull
+            @Override
+            public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+                return (T) new StrongViewModel(strongRepository);
+            }
+        }).get(StrongViewModel.class);
+
+        strongBottomSheetView = new StrongBottomSheetView(this, this, strongViewModel);
 
         repository = new BibleRepository(this);
         allBooks = bookLocalDataSource.getAllBooks();
@@ -279,69 +299,6 @@ public class MainActivity extends ComponentActivity {
     return verseReaderView.createView(selectedBook, selectedChapter, chapters, preferenceFontSize);
 }
 
-    private View buildVerseView(Verse verse) {
-        View view = getLayoutInflater().inflate(R.layout.layout_verse_item, null);
-        TextView sectionTitle = view.findViewById(R.id.verse_section_title);
-        TextView text = view.findViewById(R.id.verse_text);
-
-        if (verse.getSectionTitle() != null && !verse.getSectionTitle().isEmpty()) {
-            sectionTitle.setVisibility(View.VISIBLE);
-            sectionTitle.setText(verse.getSectionTitle());
-            sectionTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, preferenceFontSize - 2);
-        } else {
-            sectionTitle.setVisibility(View.GONE);
-        }
-
-        text.setTextSize(TypedValue.COMPLEX_UNIT_SP, preferenceFontSize);
-        text.setHighlightColor(Color.TRANSPARENT);
-        text.setMovementMethod(LinkMovementMethod.getInstance());
-
-        List<WordToken> tokens = StrongParser.parseVerseText(verse.getRawText());
-        verse.setTokens(tokens);
-
-        SpannableStringBuilder builder = new SpannableStringBuilder();
-        String prefix = verse.getNumber() + "  ";
-        builder.append(prefix);
-        builder.setSpan(new ForegroundColorSpan(COLOR_PRIMARY_CYAN), 0, prefix.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        builder.setSpan(new StyleSpan(Typeface.BOLD), 0, prefix.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        for (final WordToken token : tokens) {
-            builder.append(token.getWord());
-            
-            if (token.hasStrong()) {
-                for (final String code : token.getStrongCodes()) {
-                    builder.append(" ");
-                    int startCode = builder.length();
-                    builder.append("<").append(code).append(">");
-                    int endCode = builder.length();
-                    
-                    builder.setSpan(new ForegroundColorSpan(COLOR_PRIMARY_CYAN), startCode, endCode, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    builder.setSpan(new UnderlineSpan(), startCode, endCode, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    
-                    builder.setSpan(new ClickableSpan() {
-                        @Override
-                        public void onClick(@NonNull View widget) {
-                            List<String> tempCodes = new ArrayList<>();
-                            tempCodes.add(code);
-                            showStrongDetailsBottomSheet(new WordToken(token.getWord(), tempCodes));
-                        }
-
-                        @Override
-                        public void updateDrawState(@NonNull TextPaint ds) {
-                            super.updateDrawState(ds);
-                            ds.setColor(COLOR_PRIMARY_CYAN);
-                            ds.setUnderlineText(true);
-                        }
-                    }, startCode, endCode, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }
-            }
-            builder.append(" ");
-        }
-
-        text.setText(builder);
-        return view;
-    }
-
     private View buildSearchScreen() {
         View view = getLayoutInflater().inflate(R.layout.screen_search, contentFrame, false);
 
@@ -447,30 +404,6 @@ public class MainActivity extends ComponentActivity {
     }
 
     private void showStrongDetailsBottomSheet(WordToken token) {
-        if (!token.hasStrong()) return;
-
-        final BottomSheetDialog bottomSheet = new BottomSheetDialog(this);
-        View bottomView = getLayoutInflater().inflate(R.layout.layout_strong_bottom_sheet, null);
-
-        final String mainStrongCode = token.getStrongCodes().get(0);
-        StrongEntry entry = repository.getStrong(mainStrongCode);
-
-        TextView badge = bottomView.findViewById(R.id.bottom_sheet_badge);
-        TextView langIndicator = bottomView.findViewById(R.id.bottom_sheet_lang);
-        TextView unicodeValue = bottomView.findViewById(R.id.bottom_sheet_unicode);
-        TextView translitText = bottomView.findViewById(R.id.bottom_sheet_translit);
-        TextView meaningText = bottomView.findViewById(R.id.bottom_sheet_meaning);
-        TextView closeBtn = bottomView.findViewById(R.id.bottom_sheet_close_btn);
-
-        badge.setText(entry.getCode());
-        langIndicator.setText(entry.getLanguage());
-        unicodeValue.setText(entry.getOriginalWord());
-        translitText.setText(entry.getTransliteration());
-        meaningText.setText(entry.getMeaning());
-
-        closeBtn.setOnClickListener(v -> bottomSheet.dismiss());
-
-        bottomSheet.setContentView(bottomView);
-        bottomSheet.show();
+        strongBottomSheetView.show(token);
     }
 }
