@@ -43,6 +43,9 @@ import com.devgabriel.bstrong.features.books.presentation.view.BookSelectionView
 import com.devgabriel.bstrong.features.books.presentation.viewmodel.BookViewModel;
 import com.devgabriel.bstrong.features.books.data.repository.BookRepositoryImpl;
 import com.devgabriel.bstrong.features.books.domain.repository.BookRepository;
+import com.devgabriel.bstrong.features.verses.data.datasource.VerseLocalDataSource;
+import com.devgabriel.bstrong.features.verses.domain.model.Verse;
+import com.devgabriel.bstrong.features.verses.domain.model.WordToken;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,6 +78,7 @@ public class MainActivity extends ComponentActivity {
     private ChapterViewModel chapterViewModel;
     private BookLocalDataSource bookLocalDataSource;
     private BookViewModel bookViewModel;
+    private VerseLocalDataSource verseLocalDataSource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +94,7 @@ public class MainActivity extends ComponentActivity {
 
         chapterLocalDataSource = new ChapterLocalDataSource(new BibleDatabaseHelper(this));
         bookLocalDataSource = new BookLocalDataSource(new BibleDatabaseHelper(this));
+        verseLocalDataSource = new VerseLocalDataSource(new BibleDatabaseHelper(this));
         BookRepository bookRepository = new BookRepositoryImpl(bookLocalDataSource);
         bookViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
             @NonNull
@@ -259,7 +264,7 @@ public class MainActivity extends ComponentActivity {
             nextBtn.setOnClickListener(v -> navigateTo(SCREEN_READING, selectedChapter + 1));
         }
 
-        List<Verse> versesList = repository.getVerses(selectedBook.getId(), selectedChapter);
+        List<Verse> versesList = verseLocalDataSource.getVerses(selectedBook.getId(), selectedChapter);
 
         Runnable updateVersesFont = () -> {
             versesContainer.removeAllViews();

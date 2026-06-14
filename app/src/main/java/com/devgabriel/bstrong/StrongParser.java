@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.devgabriel.bstrong.features.verses.domain.model.WordToken;
 
 public class StrongParser {
 

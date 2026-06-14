@@ -1,5 +1,6 @@
-package com.devgabriel.bstrong;
+package com.devgabriel.bstrong.features.verses.domain.model;
 
+import com.devgabriel.bstrong.features.verses.domain.model.WordToken;
 import java.util.List;
 
 public class Verse {

@@ -17,37 +17,32 @@ public class BibleRepository {
         this.dbHelper = new BibleDatabaseHelper(context);
     }
 
-    public List<Verse> getVerses(int bookId, int chapter) {
-        List<Verse> list = new ArrayList<>();
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = null;
-        try {
-            cursor = db.rawQuery(
-                "SELECT VER_VERSICULO, VER_TITULO, VER_TEXTO FROM VERSICULOS WHERE VER_LIV_ID = ? AND VER_CAPITULO = ? ORDER BY VER_VERSICULO",
-                new String[]{String.valueOf(bookId), String.valueOf(chapter)}
-            );
-            if (cursor != null && cursor.moveToFirst()) {
-                do {
-                    int number = cursor.getInt(0);
-                    String title = cursor.getString(1);
-                    String rawText = cursor.getString(2);
-                    list.add(new Verse(number, title, rawText));
-                } while (cursor.moveToNext());
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error loading verses: " + e.getMessage());
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-
-        if (list.isEmpty()) {
-            list.add(new Verse(1, "Senda de Luz", "No princípio,<H7225 criou Deus<H430 os céus<H8064 e a terra.<H776 esta é uma demonstração de leitura offline do Cap " + chapter + "."));
-            list.add(new Verse(2, null, "Guia-me pelas veredas da justiça<H6664 por amor do seu santo nome.<H8034 Todo<G3956 aquele que crê terá vida eterna.<G166"));
-        }
-        return list;
-    }
+    // public List<Verse> getVerses(int bookId, int chapter) {
+    //     List<Verse> list = new ArrayList<>();
+    //     SQLiteDatabase db = dbHelper.getReadableDatabase();
+    //     Cursor cursor = null;
+    //     try {
+    //         cursor = db.rawQuery(
+    //             "SELECT VER_VERSICULO, VER_TITULO, VER_TEXTO FROM VERSICULOS WHERE VER_LIV_ID = ? AND VER_CAPITULO = ? ORDER BY VER_VERSICULO",
+    //             new String[]{String.valueOf(bookId), String.valueOf(chapter)}
+    //         );
+    //         if (cursor != null && cursor.moveToFirst()) {
+    //             do {
+    //                 int number = cursor.getInt(0);
+    //                 String title = cursor.getString(1);
+    //                 String rawText = cursor.getString(2);
+    //                 list.add(new Verse(number, title, rawText));
+    //             } while (cursor.moveToNext());
+    //         }
+    //     } catch (Exception e) {
+    //         Log.e(TAG, "Error loading verses: " + e.getMessage());
+    //     } finally {
+    //         if (cursor != null) {
+    //             cursor.close();
+    //         }
+    //     }
+    //     return list;
+    // }
 
     public StrongEntry getStrong(String code) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();

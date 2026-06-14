@@ -1,4 +1,4 @@
-package com.devgabriel.bstrong;
+package com.devgabriel.bstrong.features.verses.domain.model;
 
 import java.util.List;
 

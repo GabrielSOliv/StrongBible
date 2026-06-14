@@ -1,5 +1,5 @@
 package com.devgabriel.bstrong;
-
+import com.devgabriel.bstrong.features.verses.domain.model.WordToken;
 import java.util.List;
 
 public class SearchResult {
