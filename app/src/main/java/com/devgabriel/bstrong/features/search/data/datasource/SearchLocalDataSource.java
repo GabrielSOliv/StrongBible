@@ -1,27 +1,26 @@
-package com.devgabriel.bstrong;
-
-import android.content.Context;
+package com.devgabriel.bstrong.features.search.data.datasource;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 import com.devgabriel.bstrong.core.database.BibleDatabaseHelper;
+import com.devgabriel.bstrong.features.search.domain.model.SearchResult;
 
-public class BibleRepository {
 
+public class SearchLocalDataSource {
     private static final String TAG = "BibleRepository";
-    private final BibleDatabaseHelper dbHelper;
+    private final BibleDatabaseHelper databaseHelper;
 
-    public BibleRepository(Context context) {
-        this.dbHelper = new BibleDatabaseHelper(context);
+    public SearchLocalDataSource(BibleDatabaseHelper databaseHelper){
+        this.databaseHelper = databaseHelper;
     }
 
     public List<SearchResult> search(String query) {
         List<SearchResult> list = new ArrayList<>();
-        if (query == null || query.trim().length() < 3) return list;
+        if (query == null || query.trim().length() < 2) return list;
 
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
         Cursor cursor = null;
         try {
             cursor = db.rawQuery(
@@ -48,15 +47,5 @@ public class BibleRepository {
             }
         }
         return list;
-    }
-
-    private int getBookChaptersCountFallback(int bookId) {
-        switch (bookId) {
-            case 1: return 50;
-            case 2: return 40;
-            case 19: return 150;
-            case 43: return 21;
-            default: return 28;
-        }
     }
 }

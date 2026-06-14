@@ -63,7 +63,7 @@
         android:id="@+id/label_results"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Digite 3 ou mais letras..."
+        android:text="Digite 2 ou mais letras..."
         android:textColor="#9A9AB0"
         android:textSize="12sp"
         android:paddingTop="10dp"

@@ -45,6 +45,7 @@ public class BookSelectionView {
         });
 
         tabAt.setSelected(true);
+        root.findViewById(R.id.search_icon_home).setOnClickListener(v -> listener.onSearchRequested());
     }
     public void updateBookList(List<Book> books) {
         booksContainer.removeAllViews();

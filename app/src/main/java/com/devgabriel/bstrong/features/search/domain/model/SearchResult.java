@@ -1,4 +1,4 @@
-package com.devgabriel.bstrong;
+package com.devgabriel.bstrong.features.search.domain.model;
 import com.devgabriel.bstrong.features.verses.domain.model.WordToken;
 import java.util.List;
 
