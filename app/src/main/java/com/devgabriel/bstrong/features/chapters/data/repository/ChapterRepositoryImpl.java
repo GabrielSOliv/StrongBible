@@ -1,4 +1,4 @@
-package com.devgabriel.bstrong.features.chapters.repository;
+package com.devgabriel.bstrong.features.chapters.data.repository;
 import java.util.List;
 import com.devgabriel.bstrong.features.chapters.domain.repository.ChapterRepository;
 import com.devgabriel.bstrong.features.chapters.data.datasource.ChapterLocalDataSource;

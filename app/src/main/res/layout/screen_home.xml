@@ -32,29 +32,11 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:src="@android:drawable/ic_menu_search"
-            android:tint="#33E1ED"
+            android:tint="#33eded"
             android:padding="12dp"
             android:clickable="true"
             android:focusable="true"/>
     </LinearLayout>
-
-    <FrameLayout
-        android:id="@+id/search_bar_btn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="12dp"
-        android:background="@drawable/bg_card_border"
-        android:layout_marginBottom="16dp"
-        android:clickable="true"
-        android:focusable="true">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pesquisar por palavras ou códigos Strong..."
-            android:textColor="#9A9AB0"
-            android:textSize="14sp" />
-    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -33,7 +33,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import com.devgabriel.bstrong.features.chapters.domain.repository.ChapterRepository;
-import com.devgabriel.bstrong.features.chapters.repository.ChapterRepositoryImpl;
+import com.devgabriel.bstrong.features.chapters.data.repository.ChapterRepositoryImpl;
 import com.devgabriel.bstrong.features.chapters.presentation.viewmodel.ChapterViewModel;
 import com.devgabriel.bstrong.features.chapters.presentation.view.ChapterSelectionView;
 import com.devgabriel.bstrong.features.books.data.datasource.BookLocalDataSource;
@@ -46,6 +46,10 @@ import com.devgabriel.bstrong.features.books.domain.repository.BookRepository;
 import com.devgabriel.bstrong.features.verses.data.datasource.VerseLocalDataSource;
 import com.devgabriel.bstrong.features.verses.domain.model.Verse;
 import com.devgabriel.bstrong.features.verses.domain.model.WordToken;
+import com.devgabriel.bstrong.features.verses.domain.repository.VerseRepository;
+import com.devgabriel.bstrong.features.verses.data.repository.VerseRepositoryImpl;
+import com.devgabriel.bstrong.features.verses.presentation.viewmodel.VerseViewModel;
+import com.devgabriel.bstrong.features.verses.presentation.view.VerseReaderView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +83,7 @@ public class MainActivity extends ComponentActivity {
     private BookLocalDataSource bookLocalDataSource;
     private BookViewModel bookViewModel;
     private VerseLocalDataSource verseLocalDataSource;
+    private VerseViewModel verseViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +116,14 @@ public class MainActivity extends ComponentActivity {
                 return (T) new ChapterViewModel(chapterRepository);
             }
         }).get(ChapterViewModel.class);
+        VerseRepository verseRepository = new VerseRepositoryImpl(verseLocalDataSource);
+        verseViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
+            @NonNull
+            @Override
+            public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+                return (T) new VerseViewModel(verseRepository);
+            }
+        }).get(VerseViewModel.class);
 
         repository = new BibleRepository(this);
         allBooks = bookLocalDataSource.getAllBooks();
@@ -238,59 +251,33 @@ public class MainActivity extends ComponentActivity {
 }
 
     private View buildReadingScreen() {
-        View view = getLayoutInflater().inflate(R.layout.screen_reading, contentFrame, false);
+    List<Integer> chapters = chapterLocalDataSource.getChapters(selectedBook.getId());
 
-        TextView backBtn = view.findViewById(R.id.back_btn_reading);
-        TextView titleHeader = view.findViewById(R.id.title_header_reading);
-        TextView fontSmaller = view.findViewById(R.id.font_smaller);
-        TextView fontBigger = view.findViewById(R.id.font_bigger);
-        TextView prevBtn = view.findViewById(R.id.prev_btn);
-        TextView nextBtn = view.findViewById(R.id.next_btn);
-        LinearLayout versesContainer = view.findViewById(R.id.verses_container);
-
-        backBtn.setOnClickListener(v -> navigateTo(SCREEN_HOME, null));
-        titleHeader.setText(selectedBook.getShortName() + " " + selectedChapter);
-
-        List<Integer> chapters = chapterLocalDataSource.getChapters(selectedBook.getId());
-        boolean hasNext = selectedChapter < chapters.size();
-
-        prevBtn.setTextColor(selectedChapter > 1 ? COLOR_PRIMARY_CYAN : COLOR_TEXT_MUTED);
-        nextBtn.setTextColor(hasNext ? COLOR_PRIMARY_CYAN : COLOR_TEXT_MUTED);
-
-        if (selectedChapter > 1) {
-            prevBtn.setOnClickListener(v -> navigateTo(SCREEN_READING, selectedChapter - 1));
+    VerseReaderView verseReaderView = new VerseReaderView(
+        this,
+        contentFrame,
+        verseViewModel,
+        new VerseReaderView.Listener() {
+            @Override public void onBackPressed() {
+                navigateTo(SCREEN_HOME, null);
+            }
+            @Override public void onNavigateToPrevChapter() {
+                navigateTo(SCREEN_READING, selectedChapter - 1);
+            }
+            @Override public void onNavigateToNextChapter() {
+                navigateTo(SCREEN_READING, selectedChapter + 1);
+            }
+            @Override public void onStrongCodeClicked(WordToken token) {
+                showStrongDetailsBottomSheet(token);
+            }
+            @Override public void onFontSizeChanged(int newSize) {
+                preferenceFontSize = newSize;
+            }
         }
-        if (hasNext) {
-            nextBtn.setOnClickListener(v -> navigateTo(SCREEN_READING, selectedChapter + 1));
-        }
+    );
 
-        List<Verse> versesList = verseLocalDataSource.getVerses(selectedBook.getId(), selectedChapter);
-
-        Runnable updateVersesFont = () -> {
-            versesContainer.removeAllViews();
-            for (Verse verse : versesList) {
-                versesContainer.addView(buildVerseView(verse));
-            }
-        };
-
-        updateVersesFont.run();
-
-        fontBigger.setOnClickListener(v -> {
-            if (preferenceFontSize < 34) {
-                preferenceFontSize += 2;
-                updateVersesFont.run();
-            }
-        });
-
-        fontSmaller.setOnClickListener(v -> {
-            if (preferenceFontSize > 12) {
-                preferenceFontSize -= 2;
-                updateVersesFont.run();
-            }
-        });
-
-        return view;
-    }
+    return verseReaderView.createView(selectedBook, selectedChapter, chapters, preferenceFontSize);
+}
 
     private View buildVerseView(Verse verse) {
         View view = getLayoutInflater().inflate(R.layout.layout_verse_item, null);
