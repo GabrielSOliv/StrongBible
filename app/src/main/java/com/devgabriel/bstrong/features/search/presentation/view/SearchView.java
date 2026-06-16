@@ -123,34 +123,30 @@ public class SearchView {
         match.setTokens(tokens);
 
         SpannableStringBuilder ssb = new SpannableStringBuilder();
+
         for (final WordToken token : tokens) {
-            ssb.append(token.getWord());
-
             if (token.hasStrong()) {
-                for (final String code : token.getStrongCodes()) {
-                    ssb.append(" ");
-                    int start = ssb.length();
-                    ssb.append("<").append(code).append(">");
-                    int end = ssb.length();
-
-                    ssb.setSpan(new ForegroundColorSpan(COLOR_CYAN), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    ssb.setSpan(new UnderlineSpan(), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    ssb.setSpan(new ClickableSpan() {
-                        @Override
-                        public void onClick(@NonNull android.view.View widget) {
-                            List<String> tempCodes = new ArrayList<>();
-                            tempCodes.add(code);
-                            listener.onStrongCodeClicked(new WordToken(token.getWord(), tempCodes));
-                        }
-                        @Override
-                        public void updateDrawState(@NonNull TextPaint ds) {
-                            super.updateDrawState(ds);
-                            ds.setColor(COLOR_CYAN);
-                            ds.setUnderlineText(true);
-                        }
-                    }, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }
+                int start = ssb.length();
+                ssb.append(token.getWord());
+                int end = ssb.length();
+                ssb.setSpan(new ForegroundColorSpan(COLOR_CYAN), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                ssb.setSpan(new UnderlineSpan(), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                ssb.setSpan(new ClickableSpan() {
+                    @Override
+                    public void onClick(@NonNull android.view.View widget) {
+                        listener.onStrongCodeClicked(new WordToken(token.getWord(), token.getStrongCodes()));
+                    }
+                    @Override
+                    public void updateDrawState(@NonNull TextPaint ds) {
+                        super.updateDrawState(ds);
+                        ds.setColor(COLOR_CYAN);
+                        ds.setUnderlineText(true);
+                    }
+                }, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else {
+                ssb.append(token.getWord());
             }
+
             ssb.append(" ");
         }
         return ssb;

@@ -138,36 +138,29 @@ public class VerseReaderView {
         builder.setSpan(new StyleSpan(Typeface.BOLD), 0, prefix.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         for (final WordToken token : tokens) {
-            builder.append(token.getWord());
-
             if (token.hasStrong()) {
-                for (final String code : token.getStrongCodes()) {
-                    builder.append(" ");
-                    int startCode = builder.length();
-                    builder.append("<").append(code).append(">");
-                    int endCode = builder.length();
+                int startWord = builder.length();
+                builder.append(token.getWord());
+                int endWord = builder.length();
 
-                    builder.setSpan(new ForegroundColorSpan(COLOR_CYAN), startCode, endCode, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    builder.setSpan(new UnderlineSpan(), startCode, endCode, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    builder.setSpan(new ClickableSpan() {
-                        @Override
-                        public void onClick(@NonNull View widget) {
-                            List<String> tempCodes = new ArrayList<>();
-                            tempCodes.add(code);
-                            listener.onStrongCodeClicked(new WordToken(token.getWord(), tempCodes));
-                        }
-                        @Override
-                        public void updateDrawState(@NonNull TextPaint ds) {
-                            super.updateDrawState(ds);
-                            ds.setColor(COLOR_CYAN);
-                            ds.setUnderlineText(true);
-                        }
-                    }, startCode, endCode, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }
+                builder.setSpan(new ForegroundColorSpan(COLOR_CYAN), startWord, endWord, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                builder.setSpan(new ClickableSpan() {
+                    @Override
+                    public void onClick(@NonNull View widget) {
+                        listener.onStrongCodeClicked(new WordToken(token.getWord(), token.getStrongCodes()));
+                    }
+                    @Override
+                    public void updateDrawState(@NonNull TextPaint ds) {
+                        super.updateDrawState(ds);
+                        ds.setColor(COLOR_CYAN);
+                        ds.setUnderlineText(true);
+                    }
+                }, startWord, endWord, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else {
+                builder.append(token.getWord());
             }
             builder.append(" ");
         }
-
         text.setText(builder);
         return view;
     }

@@ -52,14 +52,21 @@ public class MainActivity extends ComponentActivity {
     private static final int SCREEN_READING        = 2;
     private static final int SCREEN_SEARCH         = 3;
 
+    private static final String KEY_SCREEN     = "current_screen";
+    private static final String KEY_BOOK_ID    = "selected_book_id";
+    private static final String KEY_CHAPTER    = "selected_chapter";
+    private static final String KEY_FONT_SIZE  = "preference_font_size";
+    private static final String KEY_HISTORY    = "screen_history";
+
     private FrameLayout contentFrame;
+
     private int currentScreen = SCREEN_HOME;
 
     private final List<Integer> screenHistory = new ArrayList<>();
     private final List<Object>  stateHistory  = new ArrayList<>();
 
-    private Book selectedBook    = null;
-    private int  selectedChapter = 1;
+    private Book selectedBook       = null;
+    private int  selectedChapter    = 1;
     private int  preferenceFontSize = 18;
 
     private List<Book> allBooks = new ArrayList<>();
@@ -85,15 +92,13 @@ public class MainActivity extends ComponentActivity {
         setContentView(R.layout.activity_main);
         contentFrame = findViewById(R.id.content_frame);
 
-        // DataSources
-        BibleDatabaseHelper db     = new BibleDatabaseHelper(this);
-        chapterLocalDataSource     = new ChapterLocalDataSource(db);
-        bookLocalDataSource        = new BookLocalDataSource(db);
+        BibleDatabaseHelper db = new BibleDatabaseHelper(this);
+        chapterLocalDataSource = new ChapterLocalDataSource(db);
+        bookLocalDataSource = new BookLocalDataSource(db);
         VerseLocalDataSource  verseLocalDataSource  = new VerseLocalDataSource(db);
         StrongLocalDataSource strongLocalDataSource = new StrongLocalDataSource(db);
         SearchLocalDataSource searchLocalDataSource = new SearchLocalDataSource(db);
 
-        // ViewModels
         BookRepository bookRepository = new BookRepositoryImpl(bookLocalDataSource);
         bookViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
             @NonNull @Override
@@ -134,19 +139,20 @@ public class MainActivity extends ComponentActivity {
             }
         }).get(SearchViewModel.class);
 
-        // Views compartilhadas
         strongBottomSheetView = new StrongBottomSheetView(this, this, strongViewModel);
-
         allBooks = bookLocalDataSource.getAllBooks();
 
-        navigateTo(SCREEN_HOME, null);
-
+        if (savedInstanceState != null) {
+            restoreFromBundle(savedInstanceState);
+        } else {
+            navigateTo(SCREEN_HOME, null);
+        }
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 if (!screenHistory.isEmpty()) {
-                    int lastScreen = screenHistory.remove(screenHistory.size() - 1);
-                    Object lastState = stateHistory.remove(stateHistory.size() - 1);
+                    int    lastScreen = screenHistory.remove(screenHistory.size() - 1);
+                    Object lastState  = stateHistory .remove(stateHistory .size() - 1);
                     restoreState(lastScreen, lastState);
                 } else {
                     finish();
@@ -154,7 +160,57 @@ public class MainActivity extends ComponentActivity {
             }
         });
     }
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
 
+        outState.putInt(KEY_SCREEN,    currentScreen);
+        outState.putInt(KEY_CHAPTER,   selectedChapter);
+        outState.putInt(KEY_FONT_SIZE, preferenceFontSize);
+
+        if (selectedBook != null) {
+            outState.putInt(KEY_BOOK_ID, selectedBook.getId());
+        }
+
+        // Histórico de telas como array de inteiros
+        int[] historyArr = new int[screenHistory.size()];
+        for (int i = 0; i < screenHistory.size(); i++) {
+            historyArr[i] = screenHistory.get(i);
+        }
+        outState.putIntArray(KEY_HISTORY, historyArr);
+    }
+    private void restoreFromBundle(@NonNull Bundle bundle) {
+        preferenceFontSize = bundle.getInt(KEY_FONT_SIZE, 18);
+        selectedChapter    = bundle.getInt(KEY_CHAPTER,   1);
+        int savedBookId = bundle.getInt(KEY_BOOK_ID, -1);
+        if (savedBookId != -1) {
+            selectedBook = findBookById(savedBookId);
+        }
+        int[] historyArr = bundle.getIntArray(KEY_HISTORY);
+        if (historyArr != null) {
+            for (int screen : historyArr) {
+                screenHistory.add(screen);
+                stateHistory.add(null);
+            }
+        }
+        int screenToRestore = bundle.getInt(KEY_SCREEN, SCREEN_HOME);
+        currentScreen = -1;
+
+        switch (screenToRestore) {
+            case SCREEN_CHAPTER_SELECT:
+                navigateTo(SCREEN_CHAPTER_SELECT, selectedBook);
+                break;
+            case SCREEN_READING:
+                navigateTo(SCREEN_READING, selectedChapter);
+                break;
+            case SCREEN_SEARCH:
+                navigateTo(SCREEN_SEARCH, null);
+                break;
+            default:
+                navigateTo(SCREEN_HOME, null);
+                break;
+        }
+    }
     private void navigateTo(int screen, Object state) {
         if (currentScreen != screen) {
             screenHistory.add(currentScreen);
@@ -163,12 +219,20 @@ public class MainActivity extends ComponentActivity {
         currentScreen = screen;
         contentFrame.removeAllViews();
         switch (screen) {
-            case SCREEN_HOME:           contentFrame.addView(buildHomeScreen());          break;
-            case SCREEN_CHAPTER_SELECT: selectedBook = (Book) state;
-                                        contentFrame.addView(buildChapterSelectScreen()); break;
-            case SCREEN_READING:        if (state instanceof Integer) selectedChapter = (Integer) state;
-                                        contentFrame.addView(buildReadingScreen());       break;
-            case SCREEN_SEARCH:         contentFrame.addView(buildSearchScreen());        break;
+            case SCREEN_HOME:
+                contentFrame.addView(buildHomeScreen());
+                break;
+            case SCREEN_CHAPTER_SELECT:
+                selectedBook = (Book) state;
+                contentFrame.addView(buildChapterSelectScreen());
+                break;
+            case SCREEN_READING:
+                if (state instanceof Integer) selectedChapter = (Integer) state;
+                contentFrame.addView(buildReadingScreen());
+                break;
+            case SCREEN_SEARCH:
+                contentFrame.addView(buildSearchScreen());
+                break;
         }
     }
 
@@ -182,20 +246,29 @@ public class MainActivity extends ComponentActivity {
         currentScreen = screen;
         contentFrame.removeAllViews();
         switch (screen) {
-            case SCREEN_HOME:           contentFrame.addView(buildHomeScreen());          break;
-            case SCREEN_CHAPTER_SELECT: selectedBook = (Book) state;
-                                        contentFrame.addView(buildChapterSelectScreen()); break;
-            case SCREEN_READING:        selectedChapter = (Integer) state;
-                                        contentFrame.addView(buildReadingScreen());       break;
-            case SCREEN_SEARCH:         contentFrame.addView(buildSearchScreen());        break;
+            case SCREEN_HOME:
+                contentFrame.addView(buildHomeScreen());
+                break;
+            case SCREEN_CHAPTER_SELECT:
+                // state pode ser null se veio do histórico restaurado após rotação;
+                // nesse caso selectedBook já está correto.
+                if (state instanceof Book) selectedBook = (Book) state;
+                contentFrame.addView(buildChapterSelectScreen());
+                break;
+            case SCREEN_READING:
+                if (state instanceof Integer) selectedChapter = (Integer) state;
+                contentFrame.addView(buildReadingScreen());
+                break;
+            case SCREEN_SEARCH:
+                contentFrame.addView(buildSearchScreen());
+                break;
         }
     }
-
     private View buildHomeScreen() {
         BookSelectionView selectionView = new BookSelectionView(this, contentFrame, new BookSelectionView.BookSelectionListener() {
-            @Override public void onBookSelected(Book book)      { navigateTo(SCREEN_CHAPTER_SELECT, book); }
-            @Override public void onTabChanged(int testamentId)  { bookViewModel.setTab(testamentId); }
-            @Override public void onSearchRequested()            { navigateTo(SCREEN_SEARCH, null); }
+            @Override public void onBookSelected(Book book)     { navigateTo(SCREEN_CHAPTER_SELECT, book); }
+            @Override public void onTabChanged(int testamentId) { bookViewModel.setTab(testamentId); }
+            @Override public void onSearchRequested()           { navigateTo(SCREEN_SEARCH, null); }
         });
         bookViewModel.getFilteredBooks().observe(this, selectionView::updateBookList);
         return selectionView.getRoot();
@@ -225,21 +298,27 @@ public class MainActivity extends ComponentActivity {
     private View buildReadingScreen() {
         List<Integer> chapters = chapterLocalDataSource.getChapters(selectedBook.getId());
         VerseReaderView verseReaderView = new VerseReaderView(this, contentFrame, verseViewModel, new VerseReaderView.Listener() {
-            @Override public void onBackPressed()              { navigateTo(SCREEN_HOME, null); }
-            @Override public void onNavigateToPrevChapter()   { navigateTo(SCREEN_READING, selectedChapter - 1); }
-            @Override public void onNavigateToNextChapter()   { navigateTo(SCREEN_READING, selectedChapter + 1); }
-            @Override public void onStrongCodeClicked(WordToken token) { strongBottomSheetView.show(token); }
-            @Override public void onFontSizeChanged(int newSize)       { preferenceFontSize = newSize; }
+            @Override public void onBackPressed()            { navigateTo(SCREEN_HOME, null); }
+            @Override public void onNavigateToPrevChapter() { navigateTo(SCREEN_READING, selectedChapter - 1); }
+            @Override public void onNavigateToNextChapter() { navigateTo(SCREEN_READING, selectedChapter + 1); }
+            @Override public void onStrongCodeClicked(WordToken token)  { strongBottomSheetView.show(token); }
+            @Override public void onFontSizeChanged(int newSize)        { preferenceFontSize = newSize; }
         });
         return verseReaderView.createView(selectedBook, selectedChapter, chapters, preferenceFontSize);
     }
 
     private View buildSearchScreen() {
         SearchView searchView = new SearchView(this, contentFrame, searchViewModel, allBooks, new SearchView.Listener() {
-            @Override public void onBackPressed()                          { getOnBackPressedDispatcher().onBackPressed(); }
+            @Override public void onBackPressed()                         { getOnBackPressedDispatcher().onBackPressed(); }
             @Override public void onResultClicked(Book book, int chapter) { selectedBook = book; navigateTo(SCREEN_READING, chapter); }
             @Override public void onStrongCodeClicked(WordToken token)    { strongBottomSheetView.show(token); }
         });
         return searchView.createView();
+    }
+    private Book findBookById(int id) {
+        for (Book book : allBooks) {
+            if (book.getId() == id) return book;
+        }
+        return null;
     }
 }
