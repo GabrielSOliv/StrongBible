@@ -9,7 +9,7 @@ import com.devgabriel.bstrong.features.search.domain.model.SearchResult;
 
 
 public class SearchLocalDataSource {
-    private static final String TAG = "BibleRepository";
+    private static final String TAG = "SearchLocalDataSource";
     private final BibleDatabaseHelper databaseHelper;
 
     public SearchLocalDataSource(BibleDatabaseHelper databaseHelper){

@@ -22,6 +22,9 @@ public class VerseReaderView {
 
     private static final int COLOR_CYAN = Color.parseColor("#33E1ED");
     private static final int COLOR_MUTED = Color.parseColor("#9A9AB0");
+    
+    private Book currentBook;
+    private int currentChapter;
 
     public interface Listener {
         void onBackPressed();
@@ -51,6 +54,8 @@ public class VerseReaderView {
 
     public View createView(Book book, int chapter, List<Integer> availableChapters, int initialFontSize) {
         this.currentFontSize = initialFontSize;
+        this.currentBook = book;
+        this.currentChapter = chapter;
 
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View view = inflater.inflate(R.layout.screen_reading, parent, false);
