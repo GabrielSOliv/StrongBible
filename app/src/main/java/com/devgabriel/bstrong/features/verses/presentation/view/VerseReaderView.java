@@ -70,7 +70,7 @@ public class VerseReaderView {
         LinearLayout versesContainer = view.findViewById(R.id.verses_container);
 
         backBtn.setOnClickListener(v -> listener.onBackPressed());
-        titleHeader.setText(book.getShortName() + " " + chapter);
+        titleHeader.setText(book.getName() + " " + chapter);
 
         boolean hasPrev = chapter > 1;
         boolean hasNext = chapter < availableChapters.size();

@@ -20,7 +20,7 @@
             android:id="@+id/back_btn_reading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="← Menu"
+            android:text="← Leitura"
             android:textColor="#33E1ED"
             android:textSize="15sp"
             android:paddingRight="12dp"
@@ -65,6 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="◀ Cap Ant."
+            android:textColor="#33E1ED"
             android:textSize="13sp"
             android:paddingLeft="16dp"
             android:paddingTop="8dp"
@@ -85,6 +86,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Próx Cap ▶"
+            android:textColor="#33E1ED"
             android:textSize="13sp"
             android:paddingLeft="16dp"
             android:paddingTop="8dp"
@@ -95,6 +97,16 @@
             android:clickable="true"
             android:focusable="true"/>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/subtitle_header_reading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#33E1ED"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingBottom="10dp" />
 
     <ScrollView
         android:layout_width="match_parent"

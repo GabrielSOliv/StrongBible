@@ -48,6 +48,7 @@ import com.devgabriel.bstrong.features.commentary.presentation.view.CommentaryVi
 import com.devgabriel.bstrong.features.commentary.presentation.viewmodel.CommentaryViewModel;
 import com.devgabriel.bstrong.core.database.CommentaryDatabaseHelper;
 import com.devgabriel.bstrong.features.verses.domain.model.Verse;
+import androidx.lifecycle.Observer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,6 +77,7 @@ public class MainActivity extends ComponentActivity {
     private Book selectedBook       = null;
     private int  selectedChapter    = 1;
     private int  preferenceFontSize = 18;
+    private int commentaryChapter = 1;
 
     private List<Book> allBooks = new ArrayList<>();
 
@@ -340,26 +342,52 @@ public class MainActivity extends ComponentActivity {
     }
 
     private void showCommentaryForVerse(Verse verse) {
-        CommentaryView commentaryView = new CommentaryView(this);
+        final CommentaryView commentaryView = new CommentaryView(this);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, 
+                FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
         );
         commentaryView.setLayoutParams(params);
         commentaryView.setBackgroundColor(android.graphics.Color.parseColor("#1E1E2C"));
-        commentaryView.setHeaderTitle("Comentário - " + verse.getNumber());
-        commentaryViewModel.loadCommentaries(selectedBook.getId(), selectedChapter);
-        commentaryViewModel.getCommentaries().observe(this, commentaries -> {
-            commentaryView.setCommentaries(commentaries);
-        });
+
+        commentaryChapter = selectedChapter;
+        commentaryView.setHeaderTitle("Estudo " + selectedBook.getName());
+
+        final Observer<List<Commentary>> commentaryObserver = commentaries -> commentaryView.setCommentaries(commentaries);
+        commentaryViewModel.getCommentaries().observe(this, commentaryObserver);
+
+        loadSingleVerseCommentary(commentaryView, verse.getNumber());
+
         commentaryView.setOnCommentaryActionListener(new CommentaryView.OnCommentaryActionListener() {
             @Override public void onBackClicked() {
+                commentaryViewModel.getCommentaries().removeObserver(commentaryObserver);
                 contentFrame.removeView(commentaryView);
             }
-            @Override public void onShowMoreClicked() {}
-            @Override public void onPrevClicked() {}
-            @Override public void onNextClicked() {}
+            @Override public void onShowMoreClicked() { loadFullChapterCommentary(commentaryView); }
+            @Override public void onPrevClicked()     { changeCommentaryChapter(commentaryView, -1); }
+            @Override public void onNextClicked()     { changeCommentaryChapter(commentaryView, 1); }
         });
+
         contentFrame.addView(commentaryView);
+    }
+
+    private void loadSingleVerseCommentary(CommentaryView commentaryView, int verseNumber) {
+        commentaryView.setSubtitle("Comentário Capítulo " + commentaryChapter + " Versículo " + verseNumber);
+        commentaryViewModel.loadCommentaryForVerse(selectedBook.getId(), commentaryChapter, verseNumber);
+    }
+
+    private void loadFullChapterCommentary(CommentaryView commentaryView) {
+        commentaryView.setSubtitle("Comentários Capítulo " + commentaryChapter);
+        commentaryViewModel.loadCommentaries(selectedBook.getId(), commentaryChapter);
+    }
+
+    private void changeCommentaryChapter(CommentaryView commentaryView, int direction) {
+        List<Integer> chapters = chapterLocalDataSource.getChapters(selectedBook.getId());
+        int newChapter = commentaryChapter + direction;
+        if (chapters == null || !chapters.contains(newChapter)) {
+            return; // já é o primeiro ou último capítulo do livro
+        }
+        commentaryChapter = newChapter;
+        loadFullChapterCommentary(commentaryView);
     }
 }
