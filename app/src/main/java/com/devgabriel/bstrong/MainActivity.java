@@ -40,6 +40,14 @@ import com.devgabriel.bstrong.features.verses.domain.model.WordToken;
 import com.devgabriel.bstrong.features.verses.domain.repository.VerseRepository;
 import com.devgabriel.bstrong.features.verses.presentation.view.VerseReaderView;
 import com.devgabriel.bstrong.features.verses.presentation.viewmodel.VerseViewModel;
+import com.devgabriel.bstrong.features.commentary.data.datasource.CommentaryLocalDataSource;
+import com.devgabriel.bstrong.features.commentary.data.repository.CommentaryRepositoryImpl;
+import com.devgabriel.bstrong.features.commentary.domain.model.Commentary;
+import com.devgabriel.bstrong.features.commentary.domain.repository.CommentaryRepository;
+import com.devgabriel.bstrong.features.commentary.presentation.view.CommentaryView;
+import com.devgabriel.bstrong.features.commentary.presentation.viewmodel.CommentaryViewModel;
+import com.devgabriel.bstrong.core.database.CommentaryDatabaseHelper;
+import com.devgabriel.bstrong.features.verses.domain.model.Verse;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,6 +87,7 @@ public class MainActivity extends ComponentActivity {
     private StrongViewModel        strongViewModel;
     private SearchViewModel        searchViewModel;
     private StrongBottomSheetView  strongBottomSheetView;
+    private CommentaryViewModel    commentaryViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +107,7 @@ public class MainActivity extends ComponentActivity {
         VerseLocalDataSource  verseLocalDataSource  = new VerseLocalDataSource(db);
         StrongLocalDataSource strongLocalDataSource = new StrongLocalDataSource(db);
         SearchLocalDataSource searchLocalDataSource = new SearchLocalDataSource(db);
+        CommentaryLocalDataSource commentaryLocalDataSource = new CommentaryLocalDataSource(new CommentaryDatabaseHelper(this));
 
         BookRepository bookRepository = new BookRepositoryImpl(bookLocalDataSource);
         bookViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
@@ -138,6 +148,14 @@ public class MainActivity extends ComponentActivity {
                 return (T) new SearchViewModel(searchRepository);
             }
         }).get(SearchViewModel.class);
+
+        CommentaryRepository commentaryRepository = new CommentaryRepositoryImpl(commentaryLocalDataSource);
+        commentaryViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
+            @NonNull @Override
+            public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+                return (T) new CommentaryViewModel(commentaryRepository);
+            }
+        }).get(CommentaryViewModel.class);
 
         strongBottomSheetView = new StrongBottomSheetView(this, this, strongViewModel);
         allBooks = bookLocalDataSource.getAllBooks();
@@ -250,8 +268,6 @@ public class MainActivity extends ComponentActivity {
                 contentFrame.addView(buildHomeScreen());
                 break;
             case SCREEN_CHAPTER_SELECT:
-                // state pode ser null se veio do histórico restaurado após rotação;
-                // nesse caso selectedBook já está correto.
                 if (state instanceof Book) selectedBook = (Book) state;
                 contentFrame.addView(buildChapterSelectScreen());
                 break;
@@ -303,6 +319,7 @@ public class MainActivity extends ComponentActivity {
             @Override public void onNavigateToNextChapter() { navigateTo(SCREEN_READING, selectedChapter + 1); }
             @Override public void onStrongCodeClicked(WordToken token)  { strongBottomSheetView.show(token); }
             @Override public void onFontSizeChanged(int newSize)        { preferenceFontSize = newSize; }
+            @Override public void onVerseLongPressed(Verse verse)        { showCommentaryForVerse(verse); }
         });
         return verseReaderView.createView(selectedBook, selectedChapter, chapters, preferenceFontSize);
     }
@@ -320,5 +337,29 @@ public class MainActivity extends ComponentActivity {
             if (book.getId() == id) return book;
         }
         return null;
+    }
+
+    private void showCommentaryForVerse(Verse verse) {
+        CommentaryView commentaryView = new CommentaryView(this);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, 
+                FrameLayout.LayoutParams.MATCH_PARENT
+        );
+        commentaryView.setLayoutParams(params);
+        commentaryView.setBackgroundColor(android.graphics.Color.parseColor("#1E1E2C"));
+        commentaryView.setHeaderTitle("Comentário - " + verse.getNumber());
+        commentaryViewModel.loadCommentaries(selectedBook.getId(), selectedChapter);
+        commentaryViewModel.getCommentaries().observe(this, commentaries -> {
+            commentaryView.setCommentaries(commentaries);
+        });
+        commentaryView.setOnCommentaryActionListener(new CommentaryView.OnCommentaryActionListener() {
+            @Override public void onBackClicked() {
+                contentFrame.removeView(commentaryView);
+            }
+            @Override public void onShowMoreClicked() {}
+            @Override public void onPrevClicked() {}
+            @Override public void onNextClicked() {}
+        });
+        contentFrame.addView(commentaryView);
     }
 }

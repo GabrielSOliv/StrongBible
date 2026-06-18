@@ -59,34 +59,4 @@ public class CommentaryDatabaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
     }
-
-    public Cursor getCommentaryForVerse(int bookId, int chapter, int verse) {
-        SQLiteDatabase db = getReadableDatabase();
-        return db.rawQuery(
-                "SELECT * FROM COMENTARIOS " +
-                        "WHERE COM_LIV_ID = ? " +
-                        "AND COM_CAPITULO = ? " +
-                        "AND COM_VERSICULO = ?",
-                new String[]{
-                        String.valueOf(bookId),
-                        String.valueOf(chapter),
-                        String.valueOf(verse)
-                }
-        );
-    }
-
-    public Cursor getCommentariesForChapter(int bookId, int chapter) {
-        SQLiteDatabase db = getReadableDatabase();
-
-        return db.rawQuery(
-                "SELECT * FROM COMENTARIOS " +
-                        "WHERE COM_LIV_ID = ? " +
-                        "AND COM_CAPITULO = ? " +
-                        "ORDER BY COM_VERSICULO",
-                new String[]{
-                        String.valueOf(bookId),
-                        String.valueOf(chapter)
-                }
-        );
-    }
 }

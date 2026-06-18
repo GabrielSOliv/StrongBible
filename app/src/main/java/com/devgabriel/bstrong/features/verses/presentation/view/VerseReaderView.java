@@ -32,6 +32,7 @@ public class VerseReaderView {
         void onNavigateToNextChapter();
         void onStrongCodeClicked(WordToken token);
         void onFontSizeChanged(int newSize);
+        void onVerseLongPressed(Verse verse);
     }
 
     private final LifecycleOwner lifecycleOwner;
@@ -132,6 +133,13 @@ public class VerseReaderView {
         text.setTextSize(TypedValue.COMPLEX_UNIT_SP, currentFontSize);
         text.setHighlightColor(Color.TRANSPARENT);
         text.setMovementMethod(LinkMovementMethod.getInstance());
+        text.setOnLongClickListener(v -> {
+            if (listener != null) {
+                listener.onVerseLongPressed(verse);
+                return true; // Retorna true para indicar que o evento foi consumido
+            }
+            return false;
+        });
 
         List<WordToken> tokens = StrongParser.parseVerseText(verse.getRawText());
         verse.setTokens(tokens);
