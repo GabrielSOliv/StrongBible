@@ -40,6 +40,7 @@ public class VerseReaderView {
     private final VerseViewModel verseViewModel;
     private final Listener listener;
     private int currentFontSize;
+    private boolean isLongPressActive = false;
 
     public VerseReaderView(
             LifecycleOwner lifecycleOwner,
@@ -136,6 +137,7 @@ public class VerseReaderView {
         text.setOnLongClickListener(v -> {
             if (listener != null) {
                 listener.onVerseLongPressed(verse);
+                isLongPressActive = true;
                 return true; // Retorna true para indicar que o evento foi consumido
             }
             return false;
@@ -160,6 +162,10 @@ public class VerseReaderView {
                 builder.setSpan(new ClickableSpan() {
                     @Override
                     public void onClick(@NonNull View widget) {
+                        if (isLongPressActive) {
+                            isLongPressActive = false;
+                            return;
+                        }
                         listener.onStrongCodeClicked(new WordToken(token.getWord(), token.getStrongCodes()));
                     }
                     @Override
