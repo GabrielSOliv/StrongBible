@@ -18,7 +18,7 @@
             android:id="@+id/back_btn_chapters"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="← Voltar"
+            android:text="Voltar"
             android:textColor="?attr/appColorAccent" android:textSize="15sp"
             android:padding="12dp"
             android:clickable="true"

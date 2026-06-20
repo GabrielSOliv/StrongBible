@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.text.*;
 import android.text.method.LinkMovementMethod;
 import android.text.style.*;
+import android.util.TypedValue;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
@@ -20,8 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SearchView {
-
-    private static final int COLOR_CYAN = Color.parseColor("#33E1ED");
 
     public interface Listener {
         void onBackPressed();
@@ -50,8 +49,11 @@ public class SearchView {
     }
 
     public View createView() {
-        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        Context context = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.screen_search, parent, false);
+
+        int dynamicAccentColor = getThemeColor(context, R.attr.appColorAccent);
 
         TextView backBtn            = view.findViewById(R.id.back_btn_search);
         EditText searchInput        = view.findViewById(R.id.search_input);
@@ -77,7 +79,8 @@ public class SearchView {
 
                 contentText.setHighlightColor(Color.TRANSPARENT);
                 contentText.setMovementMethod(LinkMovementMethod.getInstance());
-                contentText.setText(buildSpannable(match, inflater));
+                
+                contentText.setText(buildSpannable(match, inflater, dynamicAccentColor));
 
                 itemCard.setOnClickListener(v -> {
                     hideKeyboard(searchInput);
@@ -118,7 +121,13 @@ public class SearchView {
         return view;
     }
 
-    private SpannableStringBuilder buildSpannable(SearchResult match, LayoutInflater inflater) {
+    private int getThemeColor(Context context, int attrColor) {
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(attrColor, typedValue, true);
+        return typedValue.data;
+    }
+
+    private SpannableStringBuilder buildSpannable(SearchResult match, LayoutInflater inflater, int accentColor) {
         List<WordToken> tokens = StrongParser.parseVerseText(match.getText());
         match.setTokens(tokens);
 
@@ -129,7 +138,8 @@ public class SearchView {
                 int start = ssb.length();
                 ssb.append(token.getWord());
                 int end = ssb.length();
-                ssb.setSpan(new ForegroundColorSpan(COLOR_CYAN), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                
+                ssb.setSpan(new ForegroundColorSpan(accentColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 ssb.setSpan(new UnderlineSpan(), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 ssb.setSpan(new ClickableSpan() {
                     @Override
@@ -139,7 +149,7 @@ public class SearchView {
                     @Override
                     public void updateDrawState(@NonNull TextPaint ds) {
                         super.updateDrawState(ds);
-                        ds.setColor(COLOR_CYAN);
+                        ds.setColor(accentColor);
                         ds.setUnderlineText(true);
                     }
                 }, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);

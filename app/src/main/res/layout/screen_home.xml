@@ -7,7 +7,9 @@
     android:paddingTop="24dp"
     android:paddingRight="16dp"
     android:paddingBottom="16dp"
-    android:background="?attr/appBackgroundColor"> <LinearLayout
+    android:background="?attr/appBackgroundColor">
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -20,16 +22,28 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="BÍBLIA STRONG"
-            android:textColor="?attr/appTextColorPrimary" android:textSize="22sp"
+            android:textColor="?attr/appTextColorPrimary" 
+            android:textSize="22sp"
             android:fontFamily="sans-serif-black"
             android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/theme_toggle_btn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_brush_theme"
+            android:tint="?attr/appColorAccent" 
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"/>
 
         <ImageView
             android:id="@+id/search_icon_home"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@android:drawable/ic_menu_search"
-            android:tint="?attr/appColorAccent" android:padding="12dp"
+            android:src="@drawable/ic_menu_search"
+            android:tint="?attr/appColorAccent" 
+            android:padding="12dp"
             android:clickable="true"
             android:focusable="true"/>
     </LinearLayout>
@@ -38,7 +52,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@drawable/bg_card" android:padding="4dp"
+        android:background="@drawable/bg_card" 
+        android:padding="4dp"
         android:layout_marginBottom="16dp">
 
         <TextView
@@ -54,7 +69,10 @@
             android:textStyle="bold"
             android:clickable="true"
             android:focusable="true"
-            android:background="@drawable/bg_tab_selected" android:textColor="?attr/appTextColorPrimary"/> <TextView
+            android:background="@drawable/bg_tab_selected" 
+            android:textColor="@color/tab_text_color"/> 
+
+        <TextView
             android:id="@+id/tab_nt"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -67,7 +85,9 @@
             android:textStyle="bold"
             android:clickable="true"
             android:focusable="true"
-            android:background="@drawable/bg_tab_selected" android:textColor="?attr/appTextColorPrimary"/> </LinearLayout>
+            android:background="@drawable/bg_tab_selected" 
+            android:textColor="@color/tab_text_color"/> 
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"

@@ -6,4 +6,5 @@
     <attr name="appColorSurface" format="color" />
     <attr name="appColorStroke" format="color" />
     <attr name="appTextColorSecondary" format="color" />
+    <attr name="appTabSelectedColor" format="color" />
 </resources>

@@ -16,6 +16,7 @@ public class BookSelectionView {
         void onBookSelected(Book book);
         void onTabChanged(int testamentId);
         void onSearchRequested();
+        void onThemeToggleRequested(); 
     }
     private final View root;
     private final LinearLayout booksContainer;
@@ -46,6 +47,14 @@ public class BookSelectionView {
 
         tabAt.setSelected(true);
         root.findViewById(R.id.search_icon_home).setOnClickListener(v -> listener.onSearchRequested());
+        View themeBtn = root.findViewById(R.id.theme_toggle_btn);
+        if (themeBtn != null) {
+            themeBtn.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onThemeToggleRequested();
+                }
+            });
+        }
     }
     public void updateBookList(List<Book> books) {
         booksContainer.removeAllViews();
@@ -56,7 +65,6 @@ public class BookSelectionView {
             booksContainer.addView(row);
         }
     }
-
     private View buildBookItemRow(Book book) {
         View row = LayoutInflater.from(root.getContext())
                 .inflate(R.layout.layout_book_item, booksContainer, false);

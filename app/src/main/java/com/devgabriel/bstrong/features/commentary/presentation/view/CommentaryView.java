@@ -1,7 +1,6 @@
 package com.devgabriel.bstrong.features.commentary.presentation.view;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
@@ -99,15 +98,12 @@ public class CommentaryView extends LinearLayout {
 
     public void setCommentaries(List<Commentary> commentaries) {
         if (versesContainer == null) return;
-
         versesContainer.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(getContext());
 
         if (commentaries == null || commentaries.isEmpty()) {
-            TextView emptyView = new TextView(getContext());
+            TextView emptyView = (TextView) inflater.inflate(R.layout.item_commentary_text, versesContainer, false);
             emptyView.setText("Nenhum comentário disponível para este trecho.");
-            emptyView.setTextColor(Color.WHITE);
-            emptyView.setTextSize(16f);
-            emptyView.setPadding(0, 12, 0, 24);
             versesContainer.addView(emptyView);
             return;
         }
@@ -130,11 +126,13 @@ public class CommentaryView extends LinearLayout {
                     ? "Versículo " + verseStart
                     : "Versículos " + verseStart + "-" + verseEnd;
 
-            TextView textView = new TextView(getContext());
+            TextView textView = (TextView) inflater.inflate(R.layout.item_commentary_text, versesContainer, false);
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                textView.setJustificationMode(android.text.Layout.JUSTIFICATION_MODE_INTER_WORD);
+            }
+
             textView.setText(label + "\n" + first.getText());
-            textView.setTextColor(Color.WHITE);
-            textView.setTextSize(16f);
-            textView.setPadding(0, 12, 0, 24);
             versesContainer.addView(textView);
 
             i = j;

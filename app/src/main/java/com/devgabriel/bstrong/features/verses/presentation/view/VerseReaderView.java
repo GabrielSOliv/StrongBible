@@ -1,5 +1,6 @@
 package com.devgabriel.bstrong.features.verses.presentation.view;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.text.*;
@@ -19,10 +20,7 @@ import com.devgabriel.bstrong.features.verses.presentation.viewmodel.VerseViewMo
 import java.util.*;
 
 public class VerseReaderView {
-
-    private static final int COLOR_CYAN = Color.parseColor("#33E1ED");
-    private static final int COLOR_MUTED = Color.parseColor("#9A9AB0");
-    
+   
     private Book currentBook;
     private int currentChapter;
 
@@ -42,6 +40,9 @@ public class VerseReaderView {
     private int currentFontSize;
     private boolean isLongPressActive = false;
 
+    private int dynamicAccentColor;
+    private int dynamicMutedColor;
+
     public VerseReaderView(
             LifecycleOwner lifecycleOwner,
             ViewGroup parent,
@@ -59,8 +60,12 @@ public class VerseReaderView {
         this.currentBook = book;
         this.currentChapter = chapter;
 
-        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        Context context = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.screen_reading, parent, false);
+
+        this.dynamicAccentColor = getThemeColor(context, R.attr.appColorAccent);
+        this.dynamicMutedColor = getThemeColor(context, R.attr.appTextColorSecondary);
 
         TextView backBtn        = view.findViewById(R.id.back_btn_reading);
         TextView titleHeader    = view.findViewById(R.id.title_header_reading);
@@ -76,8 +81,8 @@ public class VerseReaderView {
         boolean hasPrev = chapter > 1;
         boolean hasNext = chapter < availableChapters.size();
 
-        prevBtn.setTextColor(hasPrev ? COLOR_CYAN : COLOR_MUTED);
-        nextBtn.setTextColor(hasNext ? COLOR_CYAN : COLOR_MUTED);
+        prevBtn.setTextColor(hasPrev ? dynamicAccentColor : dynamicMutedColor);
+        nextBtn.setTextColor(hasNext ? dynamicAccentColor : dynamicMutedColor);
 
         if (hasPrev) prevBtn.setOnClickListener(v -> listener.onNavigateToPrevChapter());
         if (hasNext) nextBtn.setOnClickListener(v -> listener.onNavigateToNextChapter());
@@ -104,6 +109,12 @@ public class VerseReaderView {
         });
 
         return view;
+    }
+
+    private int getThemeColor(Context context, int attrColor) {
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(attrColor, typedValue, true);
+        return typedValue.data;
     }
 
     private void rerenderIfLoaded(LayoutInflater inflater, LinearLayout container) {
@@ -138,7 +149,7 @@ public class VerseReaderView {
             if (listener != null) {
                 listener.onVerseLongPressed(verse);
                 isLongPressActive = true;
-                return true; // Retorna true para indicar que o evento foi consumido
+                return true;
             }
             return false;
         });
@@ -149,7 +160,8 @@ public class VerseReaderView {
         SpannableStringBuilder builder = new SpannableStringBuilder();
         String prefix = verse.getNumber() + "  ";
         builder.append(prefix);
-        builder.setSpan(new ForegroundColorSpan(COLOR_CYAN), 0, prefix.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        
+        builder.setSpan(new ForegroundColorSpan(dynamicAccentColor), 0, prefix.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         builder.setSpan(new StyleSpan(Typeface.BOLD), 0, prefix.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         for (final WordToken token : tokens) {
@@ -158,7 +170,7 @@ public class VerseReaderView {
                 builder.append(token.getWord());
                 int endWord = builder.length();
 
-                builder.setSpan(new ForegroundColorSpan(COLOR_CYAN), startWord, endWord, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                builder.setSpan(new ForegroundColorSpan(dynamicAccentColor), startWord, endWord, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 builder.setSpan(new ClickableSpan() {
                     @Override
                     public void onClick(@NonNull View widget) {
@@ -171,7 +183,7 @@ public class VerseReaderView {
                     @Override
                     public void updateDrawState(@NonNull TextPaint ds) {
                         super.updateDrawState(ds);
-                        ds.setColor(COLOR_CYAN);
+                        ds.setColor(dynamicAccentColor);
                         ds.setUnderlineText(true);
                     }
                 }, startWord, endWord, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);

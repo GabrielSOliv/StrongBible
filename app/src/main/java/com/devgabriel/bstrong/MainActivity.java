@@ -1,6 +1,8 @@
 package com.devgabriel.bstrong;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -54,8 +56,6 @@ import java.util.List;
 
 public class MainActivity extends ComponentActivity {
 
-    private static final int COLOR_BACKGROUND = android.graphics.Color.parseColor("#1E1E2C");
-
     private static final int SCREEN_HOME           = 0;
     private static final int SCREEN_CHAPTER_SELECT = 1;
     private static final int SCREEN_READING        = 2;
@@ -67,6 +67,16 @@ public class MainActivity extends ComponentActivity {
     private static final String KEY_FONT_SIZE  = "preference_font_size";
     private static final String KEY_HISTORY    = "screen_history";
 
+    private static final String PREFS_NAME = "bstrong_preferences";
+    private static final String KEY_THEME_INDEX = "selected_theme_index";
+
+    private final int[] appThemes = {
+        R.style.Theme_StrongBible,
+        R.style.Theme_StrongBible_Light,
+        R.style.Theme_StrongBible_Black
+    };
+    private int currentThemeIndex = 0;
+
     private FrameLayout contentFrame;
 
     private int currentScreen = SCREEN_HOME;
@@ -77,7 +87,7 @@ public class MainActivity extends ComponentActivity {
     private Book selectedBook       = null;
     private int  selectedChapter    = 1;
     private int  preferenceFontSize = 18;
-    private int commentaryChapter = 1;
+    private int commentaryChapter   = 1;
 
     private List<Book> allBooks = new ArrayList<>();
 
@@ -90,15 +100,22 @@ public class MainActivity extends ComponentActivity {
     private SearchViewModel        searchViewModel;
     private StrongBottomSheetView  strongBottomSheetView;
     private CommentaryViewModel    commentaryViewModel;
+    private CommentaryView activeCommentaryView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        currentThemeIndex = prefs.getInt(KEY_THEME_INDEX, 0);
+        setTheme(appThemes[currentThemeIndex]);
+
         super.onCreate(savedInstanceState);
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        getWindow().setStatusBarColor(COLOR_BACKGROUND);
-        getWindow().setNavigationBarColor(COLOR_BACKGROUND);
+        
+        int dynamicBgColor = getThemeColor(R.attr.appBackgroundColor);
+        getWindow().setStatusBarColor(dynamicBgColor);
+        getWindow().setNavigationBarColor(dynamicBgColor);
 
         setContentView(R.layout.activity_main);
         contentFrame = findViewById(R.id.content_frame);
@@ -170,6 +187,10 @@ public class MainActivity extends ComponentActivity {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
+                if (activeCommentaryView != null) {
+                    closeCommentaryView();
+                    return;
+                }
                 if (!screenHistory.isEmpty()) {
                     int    lastScreen = screenHistory.remove(screenHistory.size() - 1);
                     Object lastState  = stateHistory .remove(stateHistory .size() - 1);
@@ -180,6 +201,12 @@ public class MainActivity extends ComponentActivity {
             }
         });
     }
+    private int getThemeColor(int attrColor) {
+        TypedValue typedValue = new TypedValue();
+        getTheme().resolveAttribute(attrColor, typedValue, true);
+        return typedValue.data;
+    }
+
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -192,13 +219,13 @@ public class MainActivity extends ComponentActivity {
             outState.putInt(KEY_BOOK_ID, selectedBook.getId());
         }
 
-        // Histórico de telas como array de inteiros
         int[] historyArr = new int[screenHistory.size()];
         for (int i = 0; i < screenHistory.size(); i++) {
             historyArr[i] = screenHistory.get(i);
         }
         outState.putIntArray(KEY_HISTORY, historyArr);
     }
+
     private void restoreFromBundle(@NonNull Bundle bundle) {
         preferenceFontSize = bundle.getInt(KEY_FONT_SIZE, 18);
         selectedChapter    = bundle.getInt(KEY_CHAPTER,   1);
@@ -231,6 +258,7 @@ public class MainActivity extends ComponentActivity {
                 break;
         }
     }
+
     private void navigateTo(int screen, Object state) {
         if (currentScreen != screen) {
             screenHistory.add(currentScreen);
@@ -287,9 +315,19 @@ public class MainActivity extends ComponentActivity {
             @Override public void onBookSelected(Book book)     { navigateTo(SCREEN_CHAPTER_SELECT, book); }
             @Override public void onTabChanged(int testamentId) { bookViewModel.setTab(testamentId); }
             @Override public void onSearchRequested()           { navigateTo(SCREEN_SEARCH, null); }
+            @Override public void onThemeToggleRequested()      { toggleTheme(); }
         });
+        
         bookViewModel.getFilteredBooks().observe(this, selectionView::updateBookList);
+
         return selectionView.getRoot();
+    }
+    private void toggleTheme() {
+        currentThemeIndex = (currentThemeIndex + 1) % appThemes.length;
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        prefs.edit().putInt(KEY_THEME_INDEX, currentThemeIndex).apply();
+
+        recreate();
     }
 
     private View buildChapterSelectScreen() {
@@ -334,6 +372,7 @@ public class MainActivity extends ComponentActivity {
         });
         return searchView.createView();
     }
+
     private Book findBookById(int id) {
         for (Book book : allBooks) {
             if (book.getId() == id) return book;
@@ -348,27 +387,32 @@ public class MainActivity extends ComponentActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT
         );
         commentaryView.setLayoutParams(params);
-        commentaryView.setBackgroundColor(android.graphics.Color.parseColor("#1E1E2C"));
+        commentaryView.setBackgroundColor(getThemeColor(R.attr.appBackgroundColor));
 
         commentaryChapter = selectedChapter;
         commentaryView.setHeaderTitle("Estudo " + selectedBook.getName());
 
-        final Observer<List<Commentary>> commentaryObserver = commentaries -> commentaryView.setCommentaries(commentaries);
-        commentaryViewModel.getCommentaries().observe(this, commentaryObserver);
+        commentaryViewModel.getCommentaries().observe(this, commentaryView::setCommentaries);
 
         loadSingleVerseCommentary(commentaryView, verse.getNumber());
 
+        activeCommentaryView = commentaryView;
+
         commentaryView.setOnCommentaryActionListener(new CommentaryView.OnCommentaryActionListener() {
-            @Override public void onBackClicked() {
-                commentaryViewModel.getCommentaries().removeObserver(commentaryObserver);
-                contentFrame.removeView(commentaryView);
-            }
+            @Override public void onBackClicked()     { closeCommentaryView(); }
             @Override public void onShowMoreClicked() { loadFullChapterCommentary(commentaryView); }
             @Override public void onPrevClicked()     { changeCommentaryChapter(commentaryView, -1); }
             @Override public void onNextClicked()     { changeCommentaryChapter(commentaryView, 1); }
         });
 
         contentFrame.addView(commentaryView);
+    }
+
+    private void closeCommentaryView() {
+        if (activeCommentaryView == null) return;
+        commentaryViewModel.getCommentaries().removeObservers(this);
+        contentFrame.removeView(activeCommentaryView);
+        activeCommentaryView = null;
     }
 
     private void loadSingleVerseCommentary(CommentaryView commentaryView, int verseNumber) {
@@ -385,7 +429,7 @@ public class MainActivity extends ComponentActivity {
         List<Integer> chapters = chapterLocalDataSource.getChapters(selectedBook.getId());
         int newChapter = commentaryChapter + direction;
         if (chapters == null || !chapters.contains(newChapter)) {
-            return; // já é o primeiro ou último capítulo do livro
+            return;
         }
         commentaryChapter = newChapter;
         loadFullChapterCommentary(commentaryView);
