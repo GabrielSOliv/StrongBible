@@ -4,8 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="12dp"
-    android:background="@drawable/bg_card_border"
-    android:layout_marginBottom="8dp"
+    android:background="@drawable/bg_card_border" android:layout_marginBottom="8dp"
     android:clickable="true"
     android:focusable="true">
 
@@ -13,8 +12,7 @@
         android:id="@+id/reference_header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#33E1ED"
-        android:textSize="13sp"
+        android:textColor="?attr/appColorAccent" android:textSize="13sp"
         android:textStyle="bold"
         android:paddingBottom="4dp" />
 
@@ -22,6 +20,5 @@
         android:id="@+id/content_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textSize="14sp" />
+        android:textColor="?attr/appTextColorPrimary" android:textSize="14sp" />
 </LinearLayout>

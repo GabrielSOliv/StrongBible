@@ -7,9 +7,7 @@
     android:paddingTop="24dp"
     android:paddingRight="16dp"
     android:paddingBottom="16dp"
-    android:background="#1E1E2C">
-
-    <LinearLayout
+    android:background="?attr/appBackgroundColor"> <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -21,8 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="← Leitura"
-            android:textColor="#33E1ED"
-            android:textSize="15sp"
+            android:textColor="?attr/appColorAccent" android:textSize="15sp"
             android:paddingRight="12dp"
             android:paddingTop="12dp"
             android:paddingBottom="12dp"
@@ -34,8 +31,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
+            android:textColor="?attr/appTextColorPrimary" android:textSize="18sp"
             android:gravity="center"
             android:textStyle="bold" />
 
@@ -44,8 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="+"
-            android:textColor="#33E1ED"
-            android:textSize="18sp"
+            android:textColor="?attr/appColorAccent" android:textSize="18sp"
             android:textStyle="bold"
             android:padding="10dp"
             android:clickable="true"
@@ -65,14 +60,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="◀ Cap Ant."
-            android:textColor="#33E1ED"
-            android:textSize="13sp"
+            android:textColor="?attr/appColorAccent" android:textSize="13sp"
             android:paddingLeft="16dp"
             android:paddingTop="8dp"
             android:paddingRight="16dp"
             android:paddingBottom="8dp"
-            android:background="@drawable/bg_card_border"
-            android:gravity="center"
+            android:background="@drawable/bg_card_border" android:gravity="center"
             android:clickable="true"
             android:focusable="true"/>
 
@@ -86,14 +79,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Próx Cap ▶"
-            android:textColor="#33E1ED"
-            android:textSize="13sp"
+            android:textColor="?attr/appColorAccent" android:textSize="13sp"
             android:paddingLeft="16dp"
             android:paddingTop="8dp"
             android:paddingRight="16dp"
             android:paddingBottom="8dp"
-            android:background="@drawable/bg_card_border"
-            android:gravity="center"
+            android:background="@drawable/bg_card_border" android:gravity="center"
             android:clickable="true"
             android:focusable="true"/>
     </LinearLayout>
@@ -102,8 +93,7 @@
         android:id="@+id/subtitle_header_reading"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#33E1ED"
-        android:textSize="16sp"
+        android:textColor="?attr/appColorAccent" android:textSize="16sp"
         android:textStyle="bold"
         android:gravity="center"
         android:paddingBottom="10dp" />

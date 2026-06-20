@@ -10,8 +10,7 @@
         android:id="@+id/verse_section_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#33E1ED"
-        android:textStyle="bold"
+        android:textColor="?attr/appColorAccent" android:textStyle="bold"
         android:paddingTop="12dp"
         android:paddingBottom="4dp"
         android:visibility="gone" />
@@ -20,6 +19,5 @@
         android:id="@+id/verse_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:lineSpacingMultiplier="1.25" />
+        android:textColor="?attr/appTextColorPrimary" android:lineSpacingMultiplier="1.25" />
 </LinearLayout>

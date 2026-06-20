@@ -1,5 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.StrongBible" parent="android:Theme.DeviceDefault.NoActionBar" />
+    <style name="Theme.StrongBible" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="appBackgroundColor">@color/brand_blue_dark</item>
+        <item name="appTextColorPrimary">@color/pure_white</item>
+        <item name="appColorAccent">@color/brand_blue_bright</item>
+        <item name="appColorSurface">@color/surface_blue_card</item>
+        <item name="appColorStroke">@color/stroke_blue</item>
+        <item name="appTextColorSecondary">@color/text_secondary_blue</item>
+        
+        <item name="android:windowBackground">?attr/appBackgroundColor</item>
+    </style>
+
+    <style name="Theme.StrongBible.Black" parent="Theme.StrongBible">
+        <item name="appBackgroundColor">@color/pure_black</item>
+        <item name="appTextColorPrimary">@color/pure_white</item>
+        <item name="appColorAccent">@color/brand_blue_cyan</item>
+        <item name="appColorSurface">@color/surface_black_card</item>
+        <item name="appColorStroke">@color/stroke_black</item>
+        <item name="appTextColorSecondary">@color/text_secondary_black</item>
+    </style>
+
+    <style name="Theme.StrongBible.Light" parent="Theme.StrongBible">
+        <item name="appBackgroundColor">@color/pure_white</item>
+        <item name="appTextColorPrimary">@color/pure_black</item>
+        <item name="appColorAccent">@color/brand_blue_cyan</item>
+        <item name="appColorSurface">@color/surface_light_card</item>
+        <item name="appColorStroke">@color/stroke_light</item>
+        <item name="appTextColorSecondary">@color/text_secondary_light</item>
+    </style>
+
 </resources>
