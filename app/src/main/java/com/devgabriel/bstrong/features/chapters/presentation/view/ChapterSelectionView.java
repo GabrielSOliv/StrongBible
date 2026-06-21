@@ -4,12 +4,13 @@ import android.app.Activity;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.TextView;
+import android.widget.ImageView;
 import com.devgabriel.bstrong.R;
 
 public class ChapterSelectionView {
     private final Activity activity;
     private View root;
-    private TextView backBtn;
+    private ImageView backBtn;
     private TextView title;
     private GridLayout chaptersGrid;
 
@@ -26,7 +27,7 @@ public class ChapterSelectionView {
     public View getRoot() {
         return root;
     }
-    public TextView getBackBtn() {
+    public ImageView getBackBtn() {
         return backBtn;
     }
     public TextView getTitle() {

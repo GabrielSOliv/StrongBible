@@ -15,7 +15,7 @@ import java.util.Objects;
 
 public class CommentaryView extends LinearLayout {
 
-    private TextView backBtn;
+    private ImageView backBtn;
     private TextView titleHeader;
     private TextView subtitleHeader;
     private ImageView btnShowMore;

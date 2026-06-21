@@ -69,7 +69,7 @@ public class VerseReaderView {
         this.dynamicAccentColor = getThemeColor(context, R.attr.appColorAccent);
         this.dynamicMutedColor = getThemeColor(context, R.attr.appTextColorSecondary);
 
-        TextView backBtn        = view.findViewById(R.id.back_btn_reading);
+        ImageView backBtn        = view.findViewById(R.id.back_btn_reading);
         TextView titleHeader    = view.findViewById(R.id.title_header_reading);
         TextView fontSmaller    = view.findViewById(R.id.font_smaller);
         TextView fontBigger     = view.findViewById(R.id.font_bigger);

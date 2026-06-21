@@ -55,7 +55,7 @@ public class SearchView {
 
         int dynamicAccentColor = getThemeColor(context, R.attr.appColorAccent);
 
-        TextView backBtn            = view.findViewById(R.id.back_btn_search);
+        ImageView backBtn            = view.findViewById(R.id.back_btn_search);
         EditText searchInput        = view.findViewById(R.id.search_input);
         TextView labelResults       = view.findViewById(R.id.label_results);
         LinearLayout resultsContainer = view.findViewById(R.id.results_container);
