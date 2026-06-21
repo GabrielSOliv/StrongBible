@@ -60,12 +60,18 @@ public class MainActivity extends ComponentActivity {
     private static final int SCREEN_CHAPTER_SELECT = 1;
     private static final int SCREEN_READING        = 2;
     private static final int SCREEN_SEARCH         = 3;
+    private static final int SCREEN_COMMENTARY     = 4;
 
     private static final String KEY_SCREEN     = "current_screen";
     private static final String KEY_BOOK_ID    = "selected_book_id";
     private static final String KEY_CHAPTER    = "selected_chapter";
     private static final String KEY_FONT_SIZE  = "preference_font_size";
     private static final String KEY_HISTORY    = "screen_history";
+
+    private static final String KEY_COMMENTARY_ACTIVE      = "commentary_active";
+    private static final String KEY_COMMENTARY_CHAPTER     = "commentary_chapter";
+    private static final String KEY_COMMENTARY_VERSE       = "commentary_verse";
+    private static final String KEY_COMMENTARY_FULL_CHAPTER = "commentary_full_chapter";
 
     private static final String PREFS_NAME = "bstrong_preferences";
     private static final String KEY_THEME_INDEX = "selected_theme_index";
@@ -88,6 +94,9 @@ public class MainActivity extends ComponentActivity {
     private int  selectedChapter    = 1;
     private int  preferenceFontSize = 18;
     private int commentaryChapter   = 1;
+
+    private int     commentaryVerseNumber     = -1;
+    private boolean commentaryFullChapterMode = false;
 
     private List<Book> allBooks = new ArrayList<>();
 
@@ -191,6 +200,12 @@ public class MainActivity extends ComponentActivity {
                     closeCommentaryView();
                     return;
                 }
+                if (currentScreen == SCREEN_HOME) {
+                    screenHistory.clear();
+                    stateHistory.clear();
+                    finish();
+                    return;
+                }
                 if (!screenHistory.isEmpty()) {
                     int    lastScreen = screenHistory.remove(screenHistory.size() - 1);
                     Object lastState  = stateHistory .remove(stateHistory .size() - 1);
@@ -224,6 +239,14 @@ public class MainActivity extends ComponentActivity {
             historyArr[i] = screenHistory.get(i);
         }
         outState.putIntArray(KEY_HISTORY, historyArr);
+
+        boolean commentaryActive = (activeCommentaryView != null);
+        outState.putBoolean(KEY_COMMENTARY_ACTIVE, commentaryActive);
+        if (commentaryActive) {
+            outState.putInt(KEY_COMMENTARY_CHAPTER, commentaryChapter);
+            outState.putInt(KEY_COMMENTARY_VERSE, commentaryVerseNumber);
+            outState.putBoolean(KEY_COMMENTARY_FULL_CHAPTER, commentaryFullChapterMode);
+        }
     }
 
     private void restoreFromBundle(@NonNull Bundle bundle) {
@@ -257,6 +280,14 @@ public class MainActivity extends ComponentActivity {
                 navigateTo(SCREEN_HOME, null);
                 break;
         }
+
+        boolean commentaryActive = bundle.getBoolean(KEY_COMMENTARY_ACTIVE, false);
+        if (commentaryActive && screenToRestore == SCREEN_READING && selectedBook != null) {
+            commentaryChapter         = bundle.getInt(KEY_COMMENTARY_CHAPTER, selectedChapter);
+            commentaryVerseNumber     = bundle.getInt(KEY_COMMENTARY_VERSE, -1);
+            commentaryFullChapterMode = bundle.getBoolean(KEY_COMMENTARY_FULL_CHAPTER, false);
+            openCommentaryView();
+        }
     }
 
     private void navigateTo(int screen, Object state) {
@@ -268,6 +299,8 @@ public class MainActivity extends ComponentActivity {
         contentFrame.removeAllViews();
         switch (screen) {
             case SCREEN_HOME:
+                screenHistory.clear();
+                stateHistory.clear();
                 contentFrame.addView(buildHomeScreen());
                 break;
             case SCREEN_CHAPTER_SELECT:
@@ -295,6 +328,8 @@ public class MainActivity extends ComponentActivity {
         contentFrame.removeAllViews();
         switch (screen) {
             case SCREEN_HOME:
+                screenHistory.clear();
+                stateHistory.clear();
                 contentFrame.addView(buildHomeScreen());
                 break;
             case SCREEN_CHAPTER_SELECT:
@@ -381,6 +416,13 @@ public class MainActivity extends ComponentActivity {
     }
 
     private void showCommentaryForVerse(Verse verse) {
+        commentaryChapter         = selectedChapter;
+        commentaryVerseNumber     = verse.getNumber();
+        commentaryFullChapterMode = false;
+        openCommentaryView();
+    }
+
+    private void openCommentaryView() {
         final CommentaryView commentaryView = new CommentaryView(this);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -388,19 +430,20 @@ public class MainActivity extends ComponentActivity {
         );
         commentaryView.setLayoutParams(params);
         commentaryView.setBackgroundColor(getThemeColor(R.attr.appBackgroundColor));
-
-        commentaryChapter = selectedChapter;
         commentaryView.setHeaderTitle("Estudo " + selectedBook.getName());
-
         commentaryViewModel.getCommentaries().observe(this, commentaryView::setCommentaries);
 
-        loadSingleVerseCommentary(commentaryView, verse.getNumber());
+        if (commentaryFullChapterMode) {
+            loadFullChapterCommentary(commentaryView);
+        } else {
+            loadSingleVerseCommentary(commentaryView, commentaryVerseNumber);
+        }
 
         activeCommentaryView = commentaryView;
 
         commentaryView.setOnCommentaryActionListener(new CommentaryView.OnCommentaryActionListener() {
             @Override public void onBackClicked()     { closeCommentaryView(); }
-            @Override public void onShowMoreClicked() { loadFullChapterCommentary(commentaryView); }
+            @Override public void onShowMoreClicked() { commentaryFullChapterMode = true; loadFullChapterCommentary(commentaryView); }
             @Override public void onPrevClicked()     { changeCommentaryChapter(commentaryView, -1); }
             @Override public void onNextClicked()     { changeCommentaryChapter(commentaryView, 1); }
         });
