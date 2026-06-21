@@ -36,14 +36,13 @@
             android:gravity="center"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/font_smaller"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="+"
-            android:textColor="?attr/appColorAccent" android:textSize="18sp"
-            android:textStyle="bold"
-            android:padding="10dp"
+        <ImageView
+            android:id="@+id/commentary_btn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_comments"
+            android:tint="?attr/appColorAccent"
+            android:padding="12dp"
             android:foreground="?android:attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"/>

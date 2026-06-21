@@ -5,6 +5,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ImageView;
 
 import com.devgabriel.bstrong.R;
 import com.devgabriel.bstrong.features.commentary.domain.model.Commentary;
@@ -17,7 +18,7 @@ public class CommentaryView extends LinearLayout {
     private TextView backBtn;
     private TextView titleHeader;
     private TextView subtitleHeader;
-    private TextView btnShowMore;
+    private ImageView btnShowMore;
     private TextView prevBtn;
     private TextView nextBtn;
     private LinearLayout versesContainer;
@@ -54,7 +55,7 @@ public class CommentaryView extends LinearLayout {
         backBtn = findViewById(R.id.back_btn_reading);
         titleHeader = findViewById(R.id.title_header_reading);
         subtitleHeader = findViewById(R.id.subtitle_header_reading);
-        btnShowMore = findViewById(R.id.font_smaller);
+        btnShowMore = findViewById(R.id.commentary_btn);
         prevBtn = findViewById(R.id.prev_btn);
         nextBtn = findViewById(R.id.next_btn);
         versesContainer = findViewById(R.id.verses_container);

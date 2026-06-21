@@ -26,7 +26,7 @@ public class SearchLocalDataSource {
             cursor = db.rawQuery(
                 "SELECT v.VER_LIV_ID, v.VER_CAPITULO, v.VER_VERSICULO, v.VER_TEXTO, l.LIV_NOME_CURTO " +
                 "FROM VERSICULOS v JOIN LIVROS l ON v.VER_LIV_ID = l.LIV_ID " +
-                "WHERE v.VER_TEXTO LIKE ? LIMIT 100",
+                "WHERE v.VER_TEXTO LIKE ?",
                 new String[]{"%" + query + "%"}
             );
             if (cursor != null && cursor.moveToFirst()) {
