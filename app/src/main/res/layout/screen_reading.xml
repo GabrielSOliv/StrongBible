@@ -6,8 +6,8 @@
     android:paddingLeft="16dp"
     android:paddingTop="24dp"
     android:paddingRight="16dp"
-    android:paddingBottom="16dp"
-    android:background="?attr/appBackgroundColor"> <LinearLayout
+    android:paddingBottom="16dp" > 
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -22,10 +22,10 @@
             android:textColor="?attr/appColorAccent" android:textSize="15sp"
             android:paddingRight="12dp"
             android:paddingTop="12dp"
-            android:paddingBottom="12dp"
             android:foreground="?android:attr/selectableItemBackground"
             android:clickable="true"
-            android:focusable="true"/>
+            android:focusable="true"
+            android:paddingBottom="12dp"/>
 
         <TextView
             android:id="@+id/title_header_reading"

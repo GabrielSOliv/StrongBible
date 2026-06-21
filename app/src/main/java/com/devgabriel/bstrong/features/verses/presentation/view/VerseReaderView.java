@@ -3,6 +3,8 @@ package com.devgabriel.bstrong.features.verses.presentation.view;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.*;
 import android.text.method.LinkMovementMethod;
 import android.text.style.*;
@@ -145,10 +147,42 @@ public class VerseReaderView {
         text.setTextSize(TypedValue.COMPLEX_UNIT_SP, currentFontSize);
         text.setHighlightColor(Color.TRANSPARENT);
         text.setMovementMethod(LinkMovementMethod.getInstance());
+
+        Handler handler = new Handler(Looper.getMainLooper());
+        Runnable highlightRunnable = () -> {
+            int highlightColor = (dynamicAccentColor & 0x00FFFFFF) | 0x26000000;
+            view.setBackgroundColor(highlightColor);
+        };
+
+        final boolean[] wasLongPress = {false};
+
+        text.setOnTouchListener((v, event) -> {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    isLongPressActive = false;
+                    wasLongPress[0] = false;
+                    handler.postDelayed(highlightRunnable, 100);
+                    break;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    handler.removeCallbacks(highlightRunnable);
+                    if (!wasLongPress[0]) {
+                        view.setBackgroundColor(Color.TRANSPARENT);
+                    }
+                    break;
+            }
+            return false;
+        });
+
         text.setOnLongClickListener(v -> {
+            wasLongPress[0] = true;
+            isLongPressActive = true;
+            v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
             if (listener != null) {
-                listener.onVerseLongPressed(verse);
-                isLongPressActive = true;
+                v.postDelayed(() -> {
+                    listener.onVerseLongPressed(verse);
+                    view.setBackgroundColor(Color.TRANSPARENT);
+                }, 50);
                 return true;
             }
             return false;
@@ -194,5 +228,16 @@ public class VerseReaderView {
         }
         text.setText(builder);
         return view;
+    }
+
+    public void clearSelections() {
+        LinearLayout versesContainer = parent.findViewById(R.id.verses_container);
+        if (versesContainer != null) {
+            for (int i = 0; i < versesContainer.getChildCount(); i++) {
+                View child = versesContainer.getChildAt(i);
+                child.setBackgroundColor(Color.TRANSPARENT);
+            }
+        }
+        isLongPressActive = false;
     }
 }
