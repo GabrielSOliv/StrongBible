@@ -34,6 +34,7 @@
             android:src="@drawable/ic_brush_theme"
             android:tint="?attr/appColorAccent" 
             android:padding="12dp"
+            android:foreground="?android:attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"/>
 
@@ -44,6 +45,7 @@
             android:src="@drawable/ic_menu_search"
             android:tint="?attr/appColorAccent" 
             android:padding="12dp"
+            android:foreground="?android:attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"/>
     </LinearLayout>
