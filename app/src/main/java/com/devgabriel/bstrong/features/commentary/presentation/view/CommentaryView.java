@@ -1,7 +1,7 @@
 package com.devgabriel.bstrong.features.commentary.presentation.view;
 
 import android.content.Context;
-import android.util.AttributeSet;
+import android.util.*;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -22,6 +22,7 @@ public class CommentaryView extends LinearLayout {
     private TextView prevBtn;
     private TextView nextBtn;
     private LinearLayout versesContainer;
+    private int currentFontSize = 18;
 
     private OnCommentaryActionListener actionListener;
 
@@ -105,6 +106,7 @@ public class CommentaryView extends LinearLayout {
         if (commentaries == null || commentaries.isEmpty()) {
             TextView emptyView = (TextView) inflater.inflate(R.layout.item_commentary_text, versesContainer, false);
             emptyView.setText("Nenhum comentário disponível para este trecho.");
+            emptyView.setTextSize(TypedValue.COMPLEX_UNIT_SP, currentFontSize);
             versesContainer.addView(emptyView);
             return;
         }
@@ -134,9 +136,13 @@ public class CommentaryView extends LinearLayout {
             }
 
             textView.setText(label + "\n" + first.getText());
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, currentFontSize);
             versesContainer.addView(textView);
 
             i = j;
         }
+    }
+    public void setFontSize(int fontSize) {
+        this.currentFontSize = fontSize;
     }
 }

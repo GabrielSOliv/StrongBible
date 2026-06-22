@@ -50,6 +50,7 @@ import com.devgabriel.bstrong.features.commentary.presentation.view.CommentaryVi
 import com.devgabriel.bstrong.features.commentary.presentation.viewmodel.CommentaryViewModel;
 import com.devgabriel.bstrong.core.database.CommentaryDatabaseHelper;
 import com.devgabriel.bstrong.features.verses.domain.model.Verse;
+import com.devgabriel.bstrong.core.preferences.repository.PreferencesRepository;
 import androidx.lifecycle.Observer;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +83,9 @@ public class MainActivity extends ComponentActivity {
         R.style.Theme_StrongBible_Black
     };
     private int currentThemeIndex = 0;
+    private PreferencesRepository preferencesRepository;
 
+    private int prefrerenceFontSize;
     private FrameLayout contentFrame;
 
     private int currentScreen = SCREEN_HOME;
@@ -113,8 +116,10 @@ public class MainActivity extends ComponentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        currentThemeIndex = prefs.getInt(KEY_THEME_INDEX, 0);
+        preferencesRepository = new PreferencesRepository(this);
+        currentThemeIndex = preferencesRepository.getThemeIndex();
+        preferenceFontSize = preferencesRepository.getFontSize();
+
         setTheme(appThemes[currentThemeIndex]);
 
         super.onCreate(savedInstanceState);
@@ -359,9 +364,7 @@ public class MainActivity extends ComponentActivity {
     }
     private void toggleTheme() {
         currentThemeIndex = (currentThemeIndex + 1) % appThemes.length;
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        prefs.edit().putInt(KEY_THEME_INDEX, currentThemeIndex).apply();
-
+        preferencesRepository.saveThemeIndex(currentThemeIndex);
         recreate();
     }
 
@@ -393,7 +396,7 @@ public class MainActivity extends ComponentActivity {
             @Override public void onNavigateToPrevChapter() { navigateTo(SCREEN_READING, selectedChapter - 1); }
             @Override public void onNavigateToNextChapter() { navigateTo(SCREEN_READING, selectedChapter + 1); }
             @Override public void onStrongCodeClicked(WordToken token)  { strongBottomSheetView.show(token); }
-            @Override public void onFontSizeChanged(int newSize)        { preferenceFontSize = newSize; }
+            @Override public void onFontSizeChanged(int newSize)        { preferenceFontSize = newSize; preferencesRepository.saveFontSize(newSize);}
             @Override public void onVerseLongPressed(Verse verse)        { showCommentaryForVerse(verse); }
         });
         return verseReaderView.createView(selectedBook, selectedChapter, chapters, preferenceFontSize);
@@ -424,6 +427,9 @@ public class MainActivity extends ComponentActivity {
 
     private void openCommentaryView() {
         final CommentaryView commentaryView = new CommentaryView(this);
+
+        commentaryView.setFontSize(preferenceFontSize);
+
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
