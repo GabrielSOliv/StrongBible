@@ -113,6 +113,7 @@ public class MainActivity extends ComponentActivity {
     private StrongBottomSheetView  strongBottomSheetView;
     private CommentaryViewModel    commentaryViewModel;
     private CommentaryView activeCommentaryView = null;
+    private int targetVerseToScroll = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -399,13 +400,15 @@ public class MainActivity extends ComponentActivity {
             @Override public void onFontSizeChanged(int newSize)        { preferenceFontSize = newSize; preferencesRepository.saveFontSize(newSize);}
             @Override public void onVerseLongPressed(Verse verse)        { showCommentaryForVerse(verse); }
         });
-        return verseReaderView.createView(selectedBook, selectedChapter, chapters, preferenceFontSize);
+        View view = verseReaderView.createView(selectedBook, selectedChapter, targetVerseToScroll, chapters, preferenceFontSize);
+        targetVerseToScroll = -1;
+        return view;
     }
 
     private View buildSearchScreen() {
         SearchView searchView = new SearchView(this, contentFrame, searchViewModel, allBooks, new SearchView.Listener() {
             @Override public void onBackPressed()                         { getOnBackPressedDispatcher().onBackPressed(); }
-            @Override public void onResultClicked(Book book, int chapter) { selectedBook = book; navigateTo(SCREEN_READING, chapter); }
+            @Override public void onResultClicked(Book book, int chapter, int verse) { selectedBook = book; targetVerseToScroll = verse; navigateTo(SCREEN_READING, chapter); }
             @Override public void onStrongCodeClicked(WordToken token)    { strongBottomSheetView.show(token); }
         });
         return searchView.createView();

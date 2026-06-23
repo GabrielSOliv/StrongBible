@@ -12,6 +12,7 @@ import android.util.TypedValue;
 import android.view.*;
 import android.widget.*;
 import androidx.annotation.NonNull;
+import androidx.core.widget.NestedScrollView;
 import androidx.lifecycle.LifecycleOwner;
 import com.devgabriel.bstrong.R;
 import com.devgabriel.bstrong.StrongParser;
@@ -25,6 +26,7 @@ public class VerseReaderView {
    
     private Book currentBook;
     private int currentChapter;
+    private int targetVerse = -1;
 
     public interface Listener {
         void onBackPressed();
@@ -57,10 +59,11 @@ public class VerseReaderView {
         this.listener = listener;
     }
 
-    public View createView(Book book, int chapter, List<Integer> availableChapters, int initialFontSize) {
+    public View createView(Book book, int chapter, int targetVerse, List<Integer> availableChapters, int initialFontSize) {
         this.currentFontSize = initialFontSize;
         this.currentBook = book;
         this.currentChapter = chapter;
+        this.targetVerse = targetVerse;
 
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -91,7 +94,13 @@ public class VerseReaderView {
 
         verseViewModel.loadVerses(book.getId(), chapter);
         verseViewModel.getVerses().observe(lifecycleOwner, verses -> {
-            if (verses != null) renderVerses(inflater, versesContainer, verses);
+            if (verses != null) {
+                renderVerses(inflater, versesContainer, verses);
+                
+                if (this.targetVerse != -1) {
+                    scrollToTargetVerse(versesContainer, verses);
+                }
+            }
         });
 
         fontBigger.setOnClickListener(v -> {
@@ -111,6 +120,41 @@ public class VerseReaderView {
         });
 
         return view;
+    }
+
+    private void scrollToTargetVerse(LinearLayout versesContainer, List<Verse> verses) {
+        int targetIndex = -1;
+        for (int i = 0; i < verses.size(); i++) {
+            if (verses.get(i).getNumber() == this.targetVerse) {
+                targetIndex = i;
+                break;
+            }
+        }
+
+        if (targetIndex != -1 && targetIndex < versesContainer.getChildCount()) {
+            View targetChild = versesContainer.getChildAt(targetIndex);
+
+            ViewParent parent = versesContainer.getParent();
+            while (parent != null && !(parent instanceof ScrollView) && !(parent instanceof NestedScrollView)) {
+                parent = parent.getParent();
+            }
+
+            if (parent != null) {
+                final View scrollView = (View) parent;
+                scrollView.post(() -> {
+                    if (scrollView instanceof ScrollView) {
+                        ((ScrollView) scrollView).smoothScrollTo(0, targetChild.getTop());
+                    } else if (scrollView instanceof NestedScrollView) {
+                        ((NestedScrollView) scrollView).smoothScrollTo(0, targetChild.getTop());
+                    }
+
+                    int highlightColor = (dynamicAccentColor & 0x00FFFFFF) | 0x33000000;
+                    targetChild.setBackgroundColor(highlightColor);
+                    targetChild.postDelayed(() -> targetChild.setBackgroundColor(Color.TRANSPARENT), 1000);
+                });
+            }
+        }
+        this.targetVerse = -1; 
     }
 
     private int getThemeColor(Context context, int attrColor) {

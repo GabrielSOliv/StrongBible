@@ -25,7 +25,7 @@ public class SearchView {
 
     public interface Listener {
         void onBackPressed();
-        void onResultClicked(Book book, int chapter);
+        void onResultClicked(Book book, int chapter, int verse);
         void onStrongCodeClicked(WordToken token);
     }
 
@@ -120,7 +120,7 @@ public class SearchView {
                         }
                     }
                     if (found != null) {
-                        listener.onResultClicked(found, match.getChapter());
+                        listener.onResultClicked(found, match.getChapter(), match.getVerse());
                     }
                 });
 
