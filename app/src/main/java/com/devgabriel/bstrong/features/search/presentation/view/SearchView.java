@@ -19,6 +19,7 @@ import com.devgabriel.bstrong.features.search.presentation.viewmodel.SearchViewM
 import com.devgabriel.bstrong.features.verses.domain.model.WordToken;
 import java.util.ArrayList;
 import java.util.List;
+import android.os.*;
 
 public class SearchView {
 
@@ -33,13 +34,17 @@ public class SearchView {
     private final SearchViewModel viewModel;
     private final Listener listener;
     private final List<Book> allBooks;
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
+    private Runnable searchRunnable;
+
+    private int selectedTestament = 1; // 1 = AT, 2 = NT
 
     public SearchView(
             LifecycleOwner lifecycleOwner,
             ViewGroup parent,
             SearchViewModel viewModel,
             List<Book> allBooks,
-            Listener listener
+            Listener listener  
     ) {
         this.lifecycleOwner = lifecycleOwner;
         this.parent = parent;
@@ -56,11 +61,33 @@ public class SearchView {
         int dynamicAccentColor = getThemeColor(context, R.attr.appColorAccent);
 
         ImageView backBtn            = view.findViewById(R.id.back_btn_search);
+        TextView  tabAt              = view.findViewById(R.id.tab_at);
+        TextView  tabNt              = view.findViewById(R.id.tab_nt);
         EditText searchInput        = view.findViewById(R.id.search_input);
         TextView labelResults       = view.findViewById(R.id.label_results);
         LinearLayout resultsContainer = view.findViewById(R.id.results_container);
 
         backBtn.setOnClickListener(v -> listener.onBackPressed());
+
+        // Estado visual inicial: AT selecionado (mesmo padrão do BookSelectionView)
+        tabAt.setSelected(true);
+        tabNt.setSelected(false);
+
+        tabAt.setOnClickListener(v -> {
+            if (selectedTestament == 1) return;
+            selectedTestament = 1;
+            tabAt.setSelected(true);
+            tabNt.setSelected(false);
+            forceSearch(searchInput.getText().toString(), labelResults, resultsContainer);
+        });
+
+        tabNt.setOnClickListener(v -> {
+            if (selectedTestament == 2) return;
+            selectedTestament = 2;
+            tabNt.setSelected(true);
+            tabAt.setSelected(false);
+            forceSearch(searchInput.getText().toString(), labelResults, resultsContainer);
+        });
 
         viewModel.getResults().observe(lifecycleOwner, matches -> {
             resultsContainer.removeAllViews();
@@ -108,17 +135,34 @@ public class SearchView {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String q = s.toString().trim();
+                if (searchRunnable != null) {
+                    searchHandler.removeCallbacks(searchRunnable);
+                }
                 if (q.length() < 2) {
                     labelResults.setText("Digite 2 ou mais letras...");
                     resultsContainer.removeAllViews();
                     return;
                 }
-                viewModel.loadSearch(q);
+                searchRunnable = () -> viewModel.loadSearch(q, selectedTestament);
+                searchHandler.postDelayed(searchRunnable, 300);
             }
         });
 
         searchInput.requestFocus();
         return view;
+    }
+
+    private void forceSearch(String rawText, TextView labelResults, LinearLayout resultsContainer) {
+        String q = rawText.trim();
+        if (searchRunnable != null) {
+            searchHandler.removeCallbacks(searchRunnable);
+        }
+        if (q.length() < 2) {
+            labelResults.setText("Digite 2 ou mais letras...");
+            resultsContainer.removeAllViews();
+            return;
+        }
+        viewModel.loadSearch(q, selectedTestament);
     }
 
     private int getThemeColor(Context context, int attrColor) {

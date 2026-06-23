@@ -10,7 +10,8 @@ public class SearchRepositoryImpl implements SearchRepository{
         this.localDataSource = localDataSource;
     }
     @Override
-    public List<SearchResult> search(String query){
-        return localDataSource.search(query);
+    public List<SearchResult> search(String query, Integer testament) {
+        SearchLocalDataSource.Testament testamentEnum = testament != null && testament == 2 ? SearchLocalDataSource.Testament.NT : SearchLocalDataSource.Testament.AT;
+        return localDataSource.search(query, testamentEnum);
     }
 }
