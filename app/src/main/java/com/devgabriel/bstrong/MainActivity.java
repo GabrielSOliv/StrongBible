@@ -398,7 +398,14 @@ public class MainActivity extends ComponentActivity {
             @Override public void onNavigateToNextChapter() { navigateTo(SCREEN_READING, selectedChapter + 1); }
             @Override public void onStrongCodeClicked(WordToken token)  { strongBottomSheetView.show(token); }
             @Override public void onFontSizeChanged(int newSize)        { preferenceFontSize = newSize; preferencesRepository.saveFontSize(newSize);}
-            @Override public void onVerseLongPressed(Verse verse)        { showCommentaryForVerse(verse); }
+            @Override public void onCommentaryRequested(List<Verse> verses) {
+                if (verses == null || verses.isEmpty()) return;
+                Verse target = verses.get(0);
+                for (Verse v : verses) {
+                    if (v.getNumber() < target.getNumber()) target = v;
+                }
+                showCommentaryForVerse(target);
+            }
         });
         View view = verseReaderView.createView(selectedBook, selectedChapter, targetVerseToScroll, chapters, preferenceFontSize);
         targetVerseToScroll = -1;

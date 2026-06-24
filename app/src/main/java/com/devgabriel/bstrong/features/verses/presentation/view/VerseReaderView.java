@@ -1,5 +1,7 @@
 package com.devgabriel.bstrong.features.verses.presentation.view;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -23,7 +25,7 @@ import com.devgabriel.bstrong.features.verses.presentation.viewmodel.VerseViewMo
 import java.util.*;
 
 public class VerseReaderView {
-   
+
     private Book currentBook;
     private int currentChapter;
     private int targetVerse = -1;
@@ -34,7 +36,7 @@ public class VerseReaderView {
         void onNavigateToNextChapter();
         void onStrongCodeClicked(WordToken token);
         void onFontSizeChanged(int newSize);
-        void onVerseLongPressed(Verse verse);
+        void onCommentaryRequested(List<Verse> selectedVerses);
     }
 
     private final LifecycleOwner lifecycleOwner;
@@ -46,6 +48,18 @@ public class VerseReaderView {
 
     private int dynamicAccentColor;
     private int dynamicMutedColor;
+
+    private boolean selectionModeActive = false;
+    private final LinkedHashMap<Integer, Verse> selectedVerses = new LinkedHashMap<>();
+    private final Map<Integer, View> verseRowViews = new HashMap<>();
+
+    private View headerRow;
+    private View chapterNavRow;
+    private View selectionToolbar;
+    private TextView selectionCountText;
+    private ImageView selectionCancelBtn;
+    private ImageView selectionCopyBtn;
+    private ImageView selectionCommentsBtn;
 
     public VerseReaderView(
             LifecycleOwner lifecycleOwner,
@@ -80,6 +94,18 @@ public class VerseReaderView {
         TextView nextBtn        = view.findViewById(R.id.next_btn);
         LinearLayout versesContainer = view.findViewById(R.id.verses_container);
 
+        headerRow            = view.findViewById(R.id.header_row_reading);
+        chapterNavRow        = view.findViewById(R.id.chapter_nav_row_reading);
+        selectionToolbar     = view.findViewById(R.id.selection_toolbar);
+        selectionCountText   = view.findViewById(R.id.selection_count_text);
+        selectionCancelBtn   = view.findViewById(R.id.selection_cancel_btn);
+        selectionCopyBtn     = view.findViewById(R.id.selection_copy_btn);
+        selectionCommentsBtn = view.findViewById(R.id.selection_comments_btn);
+
+        selectionCancelBtn.setOnClickListener(v -> clearSelections());
+        selectionCopyBtn.setOnClickListener(v -> copySelectedVerses());
+        selectionCommentsBtn.setOnClickListener(v -> requestCommentaryForSelection());
+
         backBtn.setOnClickListener(v -> listener.onBackPressed());
         titleHeader.setText(book.getName() + " " + chapter);
 
@@ -96,7 +122,7 @@ public class VerseReaderView {
         verseViewModel.getVerses().observe(lifecycleOwner, verses -> {
             if (verses != null) {
                 renderVerses(inflater, versesContainer, verses);
-                
+
                 if (this.targetVerse != -1) {
                     scrollToTargetVerse(versesContainer, verses);
                 }
@@ -154,7 +180,7 @@ public class VerseReaderView {
                 });
             }
         }
-        this.targetVerse = -1; 
+        this.targetVerse = -1;
     }
 
     private int getThemeColor(Context context, int attrColor) {
@@ -170,8 +196,15 @@ public class VerseReaderView {
 
     private void renderVerses(LayoutInflater inflater, LinearLayout container, List<Verse> verses) {
         container.removeAllViews();
+        verseRowViews.clear();
+        int selectedColor = (dynamicAccentColor & 0x00FFFFFF) | 0x33000000;
         for (Verse verse : verses) {
-            container.addView(buildVerseView(inflater, verse));
+            View row = buildVerseView(inflater, verse);
+            verseRowViews.put(verse.getNumber(), row);
+            if (selectionModeActive && selectedVerses.containsKey(verse.getNumber())) {
+                row.setBackgroundColor(selectedColor);
+            }
+            container.addView(row);
         }
     }
 
@@ -194,8 +227,8 @@ public class VerseReaderView {
 
         Handler handler = new Handler(Looper.getMainLooper());
         Runnable highlightRunnable = () -> {
-            int highlightColor = (dynamicAccentColor & 0x00FFFFFF) | 0x26000000;
-            view.setBackgroundColor(highlightColor);
+            int pressColor = (dynamicAccentColor & 0x00FFFFFF) | 0x26000000;
+            view.setBackgroundColor(pressColor);
         };
 
         final boolean[] wasLongPress = {false};
@@ -205,12 +238,14 @@ public class VerseReaderView {
                 case MotionEvent.ACTION_DOWN:
                     isLongPressActive = false;
                     wasLongPress[0] = false;
-                    handler.postDelayed(highlightRunnable, 100);
+                    if (!selectedVerses.containsKey(verse.getNumber())) {
+                        handler.postDelayed(highlightRunnable, 3);
+                    }
                     break;
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
                     handler.removeCallbacks(highlightRunnable);
-                    if (!wasLongPress[0]) {
+                    if (!wasLongPress[0] && !selectedVerses.containsKey(verse.getNumber())) {
                         view.setBackgroundColor(Color.TRANSPARENT);
                     }
                     break;
@@ -218,18 +253,22 @@ public class VerseReaderView {
             return false;
         });
 
+        text.setOnClickListener(v -> {
+            if (isLongPressActive) {
+                isLongPressActive = false;
+                return;
+            }
+            if (selectionModeActive) {
+                toggleVerseSelection(verse, view);
+            }
+        });
         text.setOnLongClickListener(v -> {
             wasLongPress[0] = true;
             isLongPressActive = true;
+            handler.removeCallbacks(highlightRunnable);
             v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-            if (listener != null) {
-                v.postDelayed(() -> {
-                    listener.onVerseLongPressed(verse);
-                    view.setBackgroundColor(Color.TRANSPARENT);
-                }, 50);
-                return true;
-            }
-            return false;
+            toggleVerseSelection(verse, view);
+            return true;
         });
 
         List<WordToken> tokens = StrongParser.parseVerseText(verse.getRawText());
@@ -238,7 +277,7 @@ public class VerseReaderView {
         SpannableStringBuilder builder = new SpannableStringBuilder();
         String prefix = verse.getNumber() + "  ";
         builder.append(prefix);
-        
+
         builder.setSpan(new ForegroundColorSpan(dynamicAccentColor), 0, prefix.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         builder.setSpan(new StyleSpan(Typeface.BOLD), 0, prefix.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
@@ -254,6 +293,10 @@ public class VerseReaderView {
                     public void onClick(@NonNull View widget) {
                         if (isLongPressActive) {
                             isLongPressActive = false;
+                            return;
+                        }
+                        if (selectionModeActive) {
+                            toggleVerseSelection(verse, view);
                             return;
                         }
                         listener.onStrongCodeClicked(new WordToken(token.getWord(), token.getStrongCodes()));
@@ -274,14 +317,106 @@ public class VerseReaderView {
         return view;
     }
 
-    public void clearSelections() {
-        LinearLayout versesContainer = parent.findViewById(R.id.verses_container);
-        if (versesContainer != null) {
-            for (int i = 0; i < versesContainer.getChildCount(); i++) {
-                View child = versesContainer.getChildAt(i);
-                child.setBackgroundColor(Color.TRANSPARENT);
+    private void showSelectionToolbar() {
+        if (headerRow != null) headerRow.setVisibility(View.GONE);
+        if (chapterNavRow != null) chapterNavRow.setVisibility(View.GONE);
+        if (selectionToolbar != null) selectionToolbar.setVisibility(View.VISIBLE);
+    }
+
+    private void toggleVerseSelection(Verse verse, View rowView) {
+        if (!selectionModeActive) {
+            selectionModeActive = true;
+            showSelectionToolbar();
+        }
+
+        int key = verse.getNumber();
+        int selectedColor = (dynamicAccentColor & 0x00FFFFFF) | 0x33000000;
+
+        if (selectedVerses.containsKey(key)) {
+            selectedVerses.remove(key);
+            rowView.setBackgroundColor(Color.TRANSPARENT);
+        } else {
+            selectedVerses.put(key, verse);
+            rowView.setBackgroundColor(selectedColor);
+        }
+
+        if (selectedVerses.isEmpty()) {
+            clearSelections();
+        } else {
+            updateSelectionToolbar();
+        }
+    }
+
+    private void updateSelectionToolbar() {
+        if (selectionCountText == null) return;
+        int count = selectedVerses.size();
+        selectionCountText.setText(count + (count == 1 ? " versículo selecionado" : " versículos selecionados"));
+    }
+
+    private void copySelectedVerses() {
+        if (selectedVerses.isEmpty()) return;
+
+        List<Verse> ordered = new ArrayList<>(selectedVerses.values());
+        Collections.sort(ordered, (a, b) -> Integer.compare(a.getNumber(), b.getNumber()));
+
+        StringBuilder sb = new StringBuilder();
+        if (currentBook != null) {
+            sb.append(currentBook.getName()).append(" ").append(currentChapter);
+            if (ordered.size() == 1) {
+                sb.append(":").append(ordered.get(0).getNumber());
+            } else {
+                sb.append(":").append(ordered.get(0).getNumber())
+                  .append("-").append(ordered.get(ordered.size() - 1).getNumber());
             }
+            sb.append("\n");
+        }
+
+        for (Verse v : ordered) {
+            sb.append(v.getNumber()).append(" ").append(buildPlainVerseText(v)).append("\n");
+        }
+
+        Context context = parent.getContext();
+        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard != null) {
+            ClipData clip = ClipData.newPlainText("Versículo", sb.toString().trim());
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(
+                    context,
+                    ordered.size() == 1 ? "Versículo copiado" : "Versículos copiados",
+                    Toast.LENGTH_SHORT
+            ).show();
+        }
+
+        clearSelections();
+    }
+
+    private String buildPlainVerseText(Verse verse) {
+        List<WordToken> tokens = verse.getTokens();
+        if (tokens == null || tokens.isEmpty()) return verse.getRawText();
+        StringBuilder text = new StringBuilder();
+        for (WordToken token : tokens) {
+            text.append(token.getWord()).append(" ");
+        }
+        return text.toString().trim();
+    }
+
+    private void requestCommentaryForSelection() {
+        if (selectedVerses.isEmpty() || listener == null) return;
+        List<Verse> verses = new ArrayList<>(selectedVerses.values());
+        listener.onCommentaryRequested(verses);
+        clearSelections();
+    }
+
+    public void clearSelections() {
+        for (View row : verseRowViews.values()) {
+            row.setBackgroundColor(Color.TRANSPARENT);
         }
         isLongPressActive = false;
+        selectedVerses.clear();
+        selectionModeActive = false;
+        if (headerRow != null) headerRow.setVisibility(View.VISIBLE);
+        if (chapterNavRow != null) chapterNavRow.setVisibility(View.VISIBLE);
+        if (selectionToolbar != null) selectionToolbar.setVisibility(View.GONE);
+        updateSelectionToolbar();
     }
 }

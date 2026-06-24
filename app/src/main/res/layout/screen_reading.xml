@@ -6,8 +6,66 @@
     android:paddingLeft="16dp"
     android:paddingTop="24dp"
     android:paddingRight="16dp"
-    android:paddingBottom="16dp" > 
+    android:paddingBottom="16dp" >
     <LinearLayout
+        android:id="@+id/selection_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="12dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/selection_cancel_btn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_arrow_left"
+            android:tint="?attr/appColorAccent"
+            android:paddingRight="12dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"/>
+
+        <TextView
+            android:id="@+id/selection_count_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="?attr/appTextColorPrimary"
+            android:textSize="16sp"
+            android:gravity="start|center_vertical"
+            android:paddingLeft="8dp"
+            android:text=""/>
+
+        <ImageView
+            android:id="@+id/selection_copy_btn"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@drawable/ic_copy"
+            android:tint="?attr/appColorAccent"
+            android:padding="10dp"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"/>
+
+        <ImageView
+            android:id="@+id/selection_comments_btn"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@drawable/ic_comments"
+            android:tint="?attr/appColorAccent"
+            android:padding="10dp"
+            android:layout_marginLeft="4dp"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/header_row_reading"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -62,6 +120,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/chapter_nav_row_reading"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
