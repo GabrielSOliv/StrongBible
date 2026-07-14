@@ -4,12 +4,12 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
+import androidx.lifecycle.Observer;
 import com.devgabriel.bstrong.R;
 import com.devgabriel.bstrong.features.strong.domain.model.StrongEntry;
 import com.devgabriel.bstrong.features.strong.presentation.viewmodel.StrongViewModel;
 import com.devgabriel.bstrong.features.verses.domain.model.WordToken;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import androidx.lifecycle.LifecycleOwner;
 
 public class StrongBottomSheetView {
 
@@ -18,16 +18,14 @@ public class StrongBottomSheetView {
     }
 
     private final Context context;
-    private final LifecycleOwner lifecycleOwner;
     private final StrongViewModel viewModel;
+    private Observer<StrongEntry> activeObserver;
 
     public StrongBottomSheetView(
             Context context,
-            LifecycleOwner lifecycleOwner,
             StrongViewModel viewModel
     ) {
         this.context = context;
-        this.lifecycleOwner = lifecycleOwner;
         this.viewModel = viewModel;
     }
 
@@ -46,7 +44,11 @@ public class StrongBottomSheetView {
         TextView meaning     = view.findViewById(R.id.bottom_sheet_meaning);
         TextView closeBtn    = view.findViewById(R.id.bottom_sheet_close_btn);
 
-        viewModel.getStrong().observe(lifecycleOwner, entry -> {
+        if (activeObserver != null) {
+            viewModel.getStrong().removeObserver(activeObserver);
+        }
+
+        activeObserver = entry -> {
             if (entry == null) {
                 badge.setText(code);
                 lang.setText("-");
@@ -60,11 +62,20 @@ public class StrongBottomSheetView {
             unicode.setText(entry.getOriginalWord());
             translit.setText(entry.getTransliteration());
             meaning.setText(entry.getMeaning());
+        };
+
+        viewModel.getStrong().observeForever(activeObserver);
+
+        dialog.setOnDismissListener(d -> {
+            if (activeObserver != null) {
+                viewModel.getStrong().removeObserver(activeObserver);
+                activeObserver = null;
+            }
         });
 
-        viewModel.loadStrong(code);
-
         closeBtn.setOnClickListener(v -> dialog.dismiss());
+
+        viewModel.loadStrong(code);
 
         dialog.setContentView(view);
         dialog.show();

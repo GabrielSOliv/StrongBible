@@ -191,7 +191,7 @@ public class MainActivity extends ComponentActivity {
             }
         }).get(CommentaryViewModel.class);
 
-        strongBottomSheetView = new StrongBottomSheetView(this, this, strongViewModel);
+        strongBottomSheetView = new StrongBottomSheetView(this, strongViewModel);
         allBooks = bookLocalDataSource.getAllBooks();
 
         if (savedInstanceState != null) {
