@@ -12,9 +12,12 @@ public class BookViewModel extends ViewModel{
     private final BookRepository repository;
     private final MutableLiveData<List<Book>> allBooks = new MutableLiveData<>();
     private final MutableLiveData<Integer> selectedTab = new MutableLiveData<>(1);
+    private final MediatorLiveData<List<Book>> filteredBooks = new MediatorLiveData<>();
 
     public BookViewModel(BookRepository repository){
         this.repository = repository;
+        filteredBooks.addSource(allBooks, books -> applyFilter(filteredBooks, books, selectedTab.getValue()));
+        filteredBooks.addSource(selectedTab, tab -> applyFilter(filteredBooks, allBooks.getValue(), tab));
         loadBooks();
     }
     public void loadBooks(){
@@ -25,13 +28,10 @@ public class BookViewModel extends ViewModel{
         selectedTab.setValue(tabId);
     }
     public LiveData<List<Book>> getFilteredBooks() {
-        MediatorLiveData<List<Book>> filtered = new MediatorLiveData<>();
-        filtered.addSource(allBooks, books -> filter(filtered, books, selectedTab.getValue()));
-        filtered.addSource(selectedTab, tab -> filter(filtered, allBooks.getValue(), tab));
-        return filtered;
+        return filteredBooks;
     }
 
-    private void filter(MutableLiveData<List<Book>> result, List<Book> books, Integer tab) {
+    private void applyFilter(MutableLiveData<List<Book>> result, List<Book> books, Integer tab) {
         if (books == null) return;
         List<Book> filtered = new ArrayList<>();
         for (Book b : books) {
