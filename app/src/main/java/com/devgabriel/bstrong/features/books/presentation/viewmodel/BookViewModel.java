@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.MediatorLiveData;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import com.devgabriel.bstrong.features.books.domain.repository.BookRepository;
 import com.devgabriel.bstrong.features.books.domain.model.Book;
 
@@ -13,6 +15,7 @@ public class BookViewModel extends ViewModel{
     private final MutableLiveData<List<Book>> allBooks = new MutableLiveData<>();
     private final MutableLiveData<Integer> selectedTab = new MutableLiveData<>(1);
     private final MediatorLiveData<List<Book>> filteredBooks = new MediatorLiveData<>();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public BookViewModel(BookRepository repository){
         this.repository = repository;
@@ -21,9 +24,20 @@ public class BookViewModel extends ViewModel{
         loadBooks();
     }
     public void loadBooks(){
-        List<Book> result = repository.getAllBooks();
-        allBooks.setValue(result);
+        executorService.execute(() -> {
+            List<Book> result = repository.getAllBooks();
+            allBooks.postValue(result);
+        });
     }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+        }
+    }
+
     public void setTab(int tabId) {
         selectedTab.setValue(tabId);
     }
