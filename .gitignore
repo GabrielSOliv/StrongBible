@@ -19,3 +19,6 @@ build/
 **/build/
 .vscode
 .idea
+
+# Banco mantido apenas localmente; não versionar.
+/app/src/main/assets/DB_BIBLE.db
